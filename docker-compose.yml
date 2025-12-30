@@ -108,7 +108,6 @@ services:
         networks:
             - smanzy_network
 
-# DELETED: The 'volumes:' block is no longer needed since we are using local paths.
 networks:
     smanzy_network:
         driver: bridge

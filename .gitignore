@@ -63,3 +63,5 @@ id_rsa*
 # Backup files
 *.bak
 *.backup
+
+smanzy_data/
