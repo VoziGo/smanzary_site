@@ -1,39 +1,45 @@
-@use '@/styles/abstracts/variables' as *;
-@use '@/styles/abstracts/mixins' as *;
+@use "@/styles/abstracts/variables" as *;
+@use "@/styles/abstracts/mixins" as *;
 
 .container {
-    max-width: 65ch; // approx prose width
-    margin: 0 auto;
-    padding: $spacing-10 $spacing-4;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem 1rem;
+	background-color: rgba(255, 255, 255, 0);
+	@media (max-width: 768px) {
+		padding: 1rem;
+	}
 }
 
 .title {
-    font-size: 1.875rem; // text-3xl
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin-bottom: $spacing-6;
+	font-size: 1.875rem; // text-3xl
+	font-weight: 700;
+	color: var(--color-text-primary);
+	padding: $spacing-4;
+	margin-bottom: $spacing-6;
 }
 
 .content {
-    color: var(--color-text-secondary);
-    line-height: 1.625;
+	color: var(--color-text-secondary);
+	line-height: 1.625;
 
-    p {
-        margin-bottom: $spacing-4;
-    }
+	p {
+		margin-bottom: $spacing-4;
+	}
 
-    strong {
-        color: var(--color-text-primary);
-        font-weight: 600;
-    }
+	strong {
+		color: var(--color-text-primary);
+		font-weight: 600;
+	}
 }
 
 .list {
-    list-style-type: disc;
-    padding-left: $spacing-5;
-    margin-top: $spacing-4;
+	list-style-type: disc;
+	padding-left: $spacing-5;
+	margin-top: $spacing-4;
 
-    li {
-        margin-bottom: $spacing-2;
-    }
+	li {
+		margin-bottom: $spacing-2;
+	}
 }
