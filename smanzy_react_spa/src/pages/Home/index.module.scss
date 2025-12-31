@@ -46,23 +46,25 @@
 
 .header {
 	max-width: $breakpoint-xl;
-	margin: 0 auto;
+	margin: auto;
 	padding: 56px $spacing-4 42px;
 	position: relative;
 	z-index: 1;
-	background: var(--gradient-card);
+	background: rgba(var(--color-text-primary), 0.15);
 	backdrop-filter: blur(20px);
-	border: 1px solid var(--color-border);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid rgba(255, 255, 255, 0.3);
 	border-top: none;
 	border-radius: 0 0 $radius-xl $radius-xl;
-	box-shadow: 0 4px 30px rgba(200, 150, 180, 0.1);
+	box-shadow: $shadow-md;
+	@include theme-transition;
 
 	@include breakpoint($breakpoint-sm) {
 		padding: 56px $spacing-6 42px;
 	}
 
 	@include breakpoint($breakpoint-lg) {
-		padding: 56px $spacing-8 42px;
+		padding: px $spacing-8 42px;
 	}
 }
 
