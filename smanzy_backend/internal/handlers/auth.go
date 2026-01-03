@@ -334,6 +334,43 @@ func (uh *UserHandler) GetAllUsersHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse{Data: users})
 }
 
+// GetAllUsersWithDeletedHandler returns all users including soft-deleted ones (admin only)
+func (uh *UserHandler) GetAllUsersWithDeletedHandler(c *gin.Context) {
+	var users []models.User
+
+	if err := uh.db.Unscoped().Preload("Roles").Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Database error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{Data: users})
+}
+
+// RestoreUserHandler restores a soft-deleted user (admin only)
+func (uh *UserHandler) RestoreUserHandler(c *gin.Context) {
+	userID := c.Param("id")
+
+	var user models.User
+	if err := uh.db.Unscoped().First(&user, userID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Database error"})
+		return
+	}
+
+	if user.DeletedAt.Valid {
+		user.DeletedAt = gorm.DeletedAt{}
+		if err := uh.db.Unscoped().Save(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to restore user"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{Data: map[string]string{"message": "User restored successfully"}})
+}
+
 // GetUserByIDHandler returns a specific user by ID (admin only)
 func (uh *UserHandler) GetUserByIDHandler(c *gin.Context) {
 	userID := c.Param("id")
@@ -568,4 +605,45 @@ func (uh *UserHandler) RemoveRoleHandler(c *gin.Context) {
 	uh.db.Preload("Roles").First(&user, userID)
 
 	c.JSON(http.StatusOK, SuccessResponse{Data: user})
+}
+
+// ResetPasswordRequest represents the JSON payload for password reset
+type ResetPasswordRequest struct {
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
+// ResetUserPasswordHandler resets a user's password (admin only)
+func (uh *UserHandler) ResetUserPasswordHandler(c *gin.Context) {
+	userID := c.Param("id")
+	var req ResetPasswordRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid input"})
+		return
+	}
+
+	var user models.User
+	if err := uh.db.First(&user, userID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Database error"})
+		return
+	}
+
+	// Hash the new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to process password"})
+		return
+	}
+
+	user.Password = string(hashedPassword)
+	if err := uh.db.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to reset password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{Data: map[string]string{"message": "Password reset successfully"}})
 }

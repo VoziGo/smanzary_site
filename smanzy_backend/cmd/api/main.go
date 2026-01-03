@@ -181,9 +181,14 @@ func main() {
 		users.Use(middleware.RoleMiddleware("admin"))
 		{
 			users.GET("", userHandler.GetAllUsersHandler)
+			users.GET("/deleted", userHandler.GetAllUsersWithDeletedHandler)
 			users.GET("/:id", userHandler.GetUserByIDHandler)
 			users.PUT("/:id", userHandler.UpdateUserHandler)
 			users.DELETE("/:id", userHandler.DeleteUserHandler)
+			users.POST("/:id/restore", userHandler.RestoreUserHandler)
+
+			// Password management
+			users.PUT("/:id/password", userHandler.ResetUserPasswordHandler)
 
 			// Role management
 			users.POST("/:id/roles", userHandler.AssignRoleHandler)

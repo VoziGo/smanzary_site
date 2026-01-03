@@ -39,7 +39,7 @@ type User struct {
 	// DeletedAt provides "Soft Delete" functionality.
 	// When we "delete" a user, it just sets this timestamp.
 	// The record stays in the DB but GORM ignores it in normal queries.
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
 
 // TableName specifies the table name for User
