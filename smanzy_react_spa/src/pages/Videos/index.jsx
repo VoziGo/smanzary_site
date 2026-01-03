@@ -1,24 +1,27 @@
 import { useState, useEffect } from "react";
 import VideoCard from "@/components/VideoCard";
 import Pagination from "@/components/Pagination";
-import styles from "./index.module.scss";
 import api from '@/services/api';
+
+import styles from "./index.module.scss";
 
 export default function Home() {
     const [videos, setVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const limit = 3;
+    const limit = 6;
 
     useEffect(() => {
-        fetchVideos(page);
+        const controller = new AbortController();
+        fetchVideos(page, controller.signal);
+        return () => controller.abort();
     }, [page]);
 
-    async function fetchVideos(pageNum) {
+    async function fetchVideos(pageNum, signal) {
         setLoading(true);
         try {
-            const response = await api.get(`/videos?page=${pageNum}&limit=${limit}`);
+            const response = await api.get(`/videos?page=${pageNum}&limit=${limit}`, { signal });
             const data = response.data;
 
             // Map backend data to match VideoCard expectations
@@ -37,6 +40,7 @@ export default function Home() {
 
             setVideos(mappedVideos);
 
+
             // Calculate total pages based on total count if available, otherwise just use logic
             if (data.total) {
                 setTotalPages(Math.ceil(data.total / limit));
@@ -44,10 +48,23 @@ export default function Home() {
                 setTotalPages(1);
             }
         } catch (error) {
-            console.error("Error fetching videos:", error);
-            setVideos([]);
+            if (api.isCancel(error) || error.name === 'CanceledError' || error.name === 'AbortError') {
+                console.log('Request canceled');
+            } else {
+                console.error("Error fetching videos:", error);
+                // Only clear videos on error if we want to show an error state, 
+                // but keeping previous videos might be better UX depending on error.
+                // For now, let's keep behavior simple but maybe not clear immediately on temporary errors?
+                // existing logic cleared it: setVideos([]); 
+                // Let's keep it defined to avoid breaking changes, but maybe only if it's not a cancel
+                setVideos([]);
+            }
         } finally {
-            setLoading(false);
+            // Only turn off loading if not aborted (though aborted requests throw, so caught above)
+            // If we use signal.aborted check:
+            if (!signal?.aborted) {
+                setLoading(false);
+            }
         }
     }
 
@@ -58,33 +75,12 @@ export default function Home() {
 
     return (
         <div className={styles.home}>
-            <header className={styles.header}>
-                <div className={styles.logo}>SmAnZaRy</div>
-                <h2 className={styles.channelName}>
-                    Welcome to SmAnZaRy YouTube Channel
-                </h2>
-                <p className={styles.description}>
-                    Cozy comfort escape environments! <br />
-                    Relax with ambient jazz piano, crackling fireplaces, snowy nights, and
-                    peaceful Christmas vibes. <br />
-                    Perfect for focus, study, relaxation, and calm evenings.
-                </p>
-                <a
-                    href="https://www.youtube.com/@smanzary?sub_confirmation=1"
-                    className={styles.subscribeBtn}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Subscribe Now
-                </a>
-            </header>
-
             <section className={styles.videosSection}>
-                <div className={styles.videosGrid}>
-                    {loading ? (
-                        <p className={styles.loading}>Loading videos...</p>
-                    ) : videos.length > 0 ? (
+                <div className={`${styles.videosGrid} ${loading && videos.length > 0 ? styles.gridLoading : ''}`}>
+                    {videos.length > 0 ? (
                         videos.map((video) => <VideoCard key={video.id} video={video} />)
+                    ) : loading ? (
+                        <p className={styles.loading}>Loading videos...</p>
                     ) : (
                         <p className={styles.noVideos}>No videos found.</p>
                     )}

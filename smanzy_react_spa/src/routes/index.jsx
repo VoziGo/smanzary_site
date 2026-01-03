@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '@/layout/MainLayout';
 
-import { Home, About, Login, Register, Profile, MediaManager, UpdateMedia, NotFound, MediaManagerCards, AlbumList, AlbumDetail } from '@/pages';
+import { Home, About, Login, Register, Profile, MediaManager, UpdateMedia, NotFound, MediaManagerCards, AlbumList, AlbumDetail, Videos } from '@/pages';
 
 const router = createBrowserRouter([
     {
@@ -12,6 +12,10 @@ const router = createBrowserRouter([
             {
                 index: true,
                 element: <Home />,
+            },
+            {
+                path: 'videos',
+                element: <Videos />,
             },
             {
                 path: 'about',

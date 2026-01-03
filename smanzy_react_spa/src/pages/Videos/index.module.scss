@@ -1,0 +1,233 @@
+@use "@/styles/abstracts/variables" as *;
+@use "@/styles/abstracts/mixins" as *;
+
+.home {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", "Segoe UI", sans-serif;
+    /* background: var(--gradient-primary); */
+    color: var(--color-text-primary);
+    text-align: center;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+
+    // Soft decorative background shapes
+    &::before {
+        content: "";
+        position: fixed;
+        top: -150px;
+        right: -150px;
+        width: 400px;
+        height: 400px;
+        background: var(--color-lavender);
+        opacity: 0.3;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    &::after {
+        content: "";
+        position: fixed;
+        bottom: -100px;
+        left: -100px;
+        width: 350px;
+        height: 350px;
+        background: var(--color-mint);
+        opacity: 0.3;
+        border-radius: 50%;
+        filter: blur(80px);
+        z-index: 0;
+        pointer-events: none;
+    }
+}
+
+.header {
+    max-width: $breakpoint-xl;
+    margin: $spacing-6 auto 0;
+    padding: $spacing-8 $spacing-4 $spacing-6;
+    position: relative;
+    z-index: 1;
+    background: rgba(var(--color-text-primary), 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: none;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-md;
+    @include theme-transition;
+
+    @include breakpoint($breakpoint-sm) {
+        padding: $spacing-8 $spacing-6 $spacing-6;
+    }
+
+    @include breakpoint($breakpoint-lg) {
+        padding: $spacing-8 $spacing-8 $spacing-6;
+    }
+}
+
+.logo {
+    font-size: 39px;
+    font-weight: 800;
+    margin-bottom: 11px;
+    background: linear-gradient(135deg,
+            var(--color-highlight) 0%,
+            var(--color-lavender) 50%,
+            var(--color-mint) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    text-shadow: 0 4px 20px rgba(200, 150, 180, 0.2);
+}
+
+.channelName {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 11px 0;
+    color: var(--color-text-primary);
+    letter-spacing: -0.5px;
+}
+
+.description {
+    font-size: 13px;
+    max-width: 490px;
+    margin: 17px auto;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+}
+
+.subscribeBtn {
+    display: inline-block;
+    margin: 22px 0;
+    padding: 11px 28px;
+    background: linear-gradient(135deg,
+            var(--color-accent) 0%,
+            var(--color-highlight) 100%);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: $radius-full;
+    transition: all $transition-base;
+    box-shadow:
+        0 4px 15px rgba(232, 164, 184, 0.4),
+        0 2px 6px rgba(232, 164, 184, 0.2);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent);
+        transition: left 0.5s ease;
+    }
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 8px 25px rgba(232, 164, 184, 0.5),
+            0 4px 10px rgba(232, 164, 184, 0.3);
+
+        &::before {
+            left: 100%;
+        }
+    }
+}
+
+.videosSection {
+    padding: 26px 0px 20px 0px;
+    position: relative;
+    z-index: 1;
+    background: transparent;
+
+    h2 {
+        margin-bottom: 40px;
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        position: relative;
+        display: inline-block;
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg,
+                    var(--color-mint),
+                    var(--color-lavender));
+            border-radius: $radius-full;
+        }
+    }
+
+    a {
+        color: var(--color-accent);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all $transition-fast;
+        position: relative;
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-accent);
+            transition: width $transition-fast;
+        }
+
+        &:hover {
+            color: var(--color-accent-hover);
+
+            &::after {
+                width: 100%;
+            }
+        }
+    }
+}
+
+.videosGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 28px;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 16px;
+    transition: opacity 0.3s ease;
+
+    &.gridLoading {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}
+
+.loading {
+    color: var(--color-accent);
+    font-style: italic;
+    grid-column: 1 / -1;
+    padding: 40px;
+    font-size: 1.1rem;
+}
+
+.noVideos {
+    color: var(--color-text-muted);
+    font-style: italic;
+    grid-column: 1 / -1;
+    padding: 40px;
+    font-size: 1.1rem;
+}

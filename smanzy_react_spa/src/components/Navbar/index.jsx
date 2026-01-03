@@ -54,6 +54,9 @@ export default function Navbar() {
                                 <NavLink to="/" isActive={isActive("/")}>
                                     Home
                                 </NavLink>
+                                <NavLink to="/videos" isActive={isActive("/videos")}>
+                                    Videos
+                                </NavLink>
                                 <NavLink to="/about" isActive={isActive("/about")}>
                                     About
                                 </NavLink>
@@ -128,6 +131,14 @@ export default function Navbar() {
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             Home
+                        </NavLink>
+                        <NavLink
+                            to="/videos"
+                            mobile
+                            isActive={isActive("/videos")}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            Videos
                         </NavLink>
                         <NavLink
                             to="/about"

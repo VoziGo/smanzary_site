@@ -10,3 +10,4 @@ export { default as NotFound } from '@/pages/NotFound';
 export { default as MediaManagerCards } from '@/pages/MediaManagerCards';
 export { default as AlbumList } from '@/pages/AlbumList';
 export { default as AlbumDetail } from '@/pages/AlbumDetail';
+export { default as Videos } from '@/pages/Videos';
