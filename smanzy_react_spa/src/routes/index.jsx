@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '@/layout/MainLayout';
 
-import { Home, About, Login, Register, Profile, MediaManager, UpdateMedia, NotFound, MediaManagerCards, AlbumList, AlbumDetail, Videos } from '@/pages';
+import { Home, About, Login, Register, Profile, MediaManager, UpdateMedia, NotFound, MediaManagerCards, AlbumList, AlbumDetail, Videos, UserManagement } from '@/pages';
 
 const router = createBrowserRouter([
     {
@@ -52,6 +52,10 @@ const router = createBrowserRouter([
             {
                 path: 'albums/:id',
                 element: <AlbumDetail />,
+            },
+            {
+                path: 'users',
+                element: <UserManagement />,
             },
             {
                 path: '*',

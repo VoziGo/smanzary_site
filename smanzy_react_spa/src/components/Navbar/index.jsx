@@ -27,6 +27,9 @@ export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAdmin = user?.roles?.some((r) => r.name === "admin");
 
     const handleLogout = () => {
         setIsMobileMenuOpen(false);
@@ -78,6 +81,11 @@ export default function Navbar() {
                                 {token && (
                                     <NavLink to="/profile" isActive={isActive("/profile")}>
                                         Profile
+                                    </NavLink>
+                                )}
+                                {token && isAdmin && (
+                                    <NavLink to="/users" isActive={isActive("/users")}>
+                                        Users
                                     </NavLink>
                                 )}
                             </div>
@@ -182,6 +190,16 @@ export default function Navbar() {
                                 >
                                     Profile
                                 </NavLink>
+                                {isAdmin && (
+                                    <NavLink
+                                        to="/users"
+                                        mobile
+                                        isActive={isActive("/users")}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        Users
+                                    </NavLink>
+                                )}
                             </>
                         )}
                     </div>
