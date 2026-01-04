@@ -556,7 +556,7 @@ export default function UserManagement() {
                                 onChange={(e) => setNewRoleName(e.target.value)}
                                 className={styles.input}
                                 placeholder="Enter role name (e.g., admin, user)"
-                                onKeyPress={(e) => {
+                                onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         e.preventDefault();
                                         handleAssignRole();
