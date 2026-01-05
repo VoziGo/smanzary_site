@@ -3,10 +3,11 @@ import styles from "./index.module.scss";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
 import logoImage from "@/assets/smanzy_logo_180.png";
+import { useUser } from "@/context/UserContext";
 
 const NavLink = ({ to, children, mobile = false, isActive, onClick }) => (
     <Link
@@ -25,22 +26,45 @@ export default function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { user, logout } = useUser();
 
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    const user = userStr ? JSON.parse(userStr) : null;
     const isAdmin = user?.roles?.some((r) => r.name === "admin");
-
-    const handleLogout = () => {
-        setIsMobileMenuOpen(false);
-        localStorage.removeItem("token");
-        navigate("/");
-    };
 
     const isActive = (path) => location.pathname === path;
 
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    const controlNavbar = () => {
+        if (typeof window !== 'undefined') {
+            if (window.scrollY > 100) { // Threshold to start hiding
+                if (window.scrollY > lastScrollY) { // Scrolling down
+                    setIsVisible(false);
+                } else { // Scrolling up
+                    setIsVisible(true);
+                }
+            } else {
+                setIsVisible(true);
+            }
+            setLastScrollY(window.scrollY);
+        }
+    };
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.addEventListener('scroll', controlNavbar);
+
+            // Cleanup function
+            return () => {
+                window.removeEventListener('scroll', controlNavbar);
+            };
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lastScrollY]);
+
+
     return (
-        <nav className={styles.navbar}>
+        <nav className={clsx(styles.navbar, !isVisible && styles.hidden)}>
             <div className={styles.container}>
                 <div className={styles.content}>
                     {/* Logo */}
@@ -63,27 +87,27 @@ export default function Navbar() {
                                 <NavLink to="/about" isActive={isActive("/about")}>
                                     About
                                 </NavLink>
-                                {token && (
+                                {user && (
                                     <NavLink to="/media" isActive={isActive("/media")}>
                                         Media List
                                     </NavLink>
                                 )}
-                                {token && (
+                                {user && (
                                     <NavLink to="/mediacards" isActive={isActive("/mediacards")}>
                                         Media Cards
                                     </NavLink>
                                 )}
-                                {token && (
+                                {user && (
                                     <NavLink to="/albums" isActive={isActive("/albums")}>
                                         Albums
                                     </NavLink>
                                 )}
-                                {token && (
+                                {user && (
                                     <NavLink to="/profile" isActive={isActive("/profile")}>
                                         Profile
                                     </NavLink>
                                 )}
-                                {token && isAdmin && (
+                                {user && isAdmin && (
                                     <NavLink to="/users" isActive={isActive("/users")}>
                                         Users
                                     </NavLink>
@@ -95,10 +119,18 @@ export default function Navbar() {
                     {/* Desktop Auth Buttons */}
                     <div className={styles.rightSection}>
                         <div className={styles.authList}>
-                            {token ? (
-                                <Button onClick={handleLogout} variant="danger" size="sm">
-                                    Logout
-                                </Button>
+                            {user ? (
+                                <div className="flex items-center gap-4">
+                                    <span className={styles.userName}>
+                                        {user.name}
+                                    </span>
+                                    <Button onClick={() => {
+                                        logout();
+                                        setIsMobileMenuOpen(false);
+                                    }} variant="danger" size="sm">
+                                        Logout
+                                    </Button>
+                                </div>
                             ) : (
                                 <div className={styles.authList}>
                                     <Link to="/login" className={styles.loginLink}>
@@ -156,7 +188,7 @@ export default function Navbar() {
                         >
                             About
                         </NavLink>
-                        {token && (
+                        {user && (
                             <>
                                 <NavLink
                                     to="/media"
@@ -206,7 +238,7 @@ export default function Navbar() {
 
                     {/* Auth Buttons */}
                     <div className={styles.mobileAuth}>
-                        {!token ? (
+                        {!user ? (
                             <div className={styles.mobileAuthGrid}>
                                 <Button
                                     variant="secondary"
@@ -230,7 +262,10 @@ export default function Navbar() {
                             <Button
                                 variant="danger"
                                 className="w-full"
-                                onClick={handleLogout}
+                                onClick={() => {
+                                    logout();
+                                    setIsMobileMenuOpen(false);
+                                }}
                             >
                                 Logout
                             </Button>

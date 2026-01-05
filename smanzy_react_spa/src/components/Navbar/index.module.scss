@@ -17,6 +17,10 @@
         background-color: rgba(255, 255, 255, 0.7);
         border-bottom-color: rgba(0, 0, 0, 0.05);
     }
+
+    &.hidden {
+        transform: translateY(-100%);
+    }
 }
 
 .container {
@@ -334,4 +338,11 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: $spacing-3;
+}
+
+.userName {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    padding: $spacing-2;
 }

@@ -2,6 +2,8 @@ import { Panel } from "@/components";
 import { useVersion } from "@/context/VersionContext";
 import styles from "./index.module.scss";
 
+import { versionInfo as frontendVersion } from "@/version";
+
 export default function About() {
     const { versionInfo, isLoading, error } = useVersion();
 
@@ -33,11 +35,7 @@ export default function About() {
                                 <p>
                                     <strong>Frontend Version Information</strong>
                                     <ul className={styles.list}>
-                                        <li>Version: {versionInfo?.version}</li>
-                                        <li>Build Time: {versionInfo?.build_time}</li>
-                                        {versionInfo?.git_commit && (
-                                            <li>Git Commit: {versionInfo.git_commit}</li>
-                                        )}
+                                        <li>Version: {frontendVersion.version}</li>
                                     </ul>
                                 </p>
                                 <p>
@@ -50,6 +48,7 @@ export default function About() {
                                         )}
                                     </ul>
                                 </p>
+
                             </div>
                         )}
                     </div>

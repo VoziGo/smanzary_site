@@ -10,8 +10,8 @@ import styles from "./index.module.scss";
 
 const CARD_BASE_WIDTH = 200; // Base card width in pixels
 const GAP_SIZE = 16; // Gap size in pixels (matches $spacing-4)
-const ROWS_TO_SHOW = 3; // Show up to 3 rows
-const MIN_LIMIT = 6; // Minimum items per page
+const ROWS_TO_SHOW = 2; // Show up to 3 rows
+const MAX_LIMIT = 8; // Maximum items per page
 
 export default function MediaManagerCards() {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function MediaManagerCards() {
     const queryClient = useQueryClient();
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [limit, setLimit] = useState(12); // Default limit
+    const [limit, setLimit] = useState(MAX_LIMIT); // Default limit
     const uploadPanelRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -38,8 +38,7 @@ export default function MediaManagerCards() {
     // Calculate optimal limit based on viewport
     const calculateOptimalLimit = useCallback(() => {
         const columns = calculateColumns();
-        const newLimit = Math.max(MIN_LIMIT, columns * ROWS_TO_SHOW);
-        setLimit(newLimit);
+        setLimit(columns * ROWS_TO_SHOW);
     }, [calculateColumns]);
 
     // Handle window resize and initial mount

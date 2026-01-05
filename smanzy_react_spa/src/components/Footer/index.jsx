@@ -1,9 +1,10 @@
 import styles from './index.module.scss';
+import { versionInfo } from '../../version';
 
 export default function Footer() {
     return (
         <footer className={styles.footer}>
-            <p>&copy; {new Date().getFullYear()} SmAnZaRy</p>
+            <p>&copy; {new Date().getFullYear()} SmAnZaRy - v{versionInfo.version}</p>
             <p>
                 <a
                     href="https://www.youtube.com/@smanzary"
