@@ -12,3 +12,4 @@ export { default as VideoCard } from "@/components/VideoCard";
 export { default as FileIcon } from "@/components/FileIcon";
 export { default as MediaPreviewOverlay } from "@/components/MediaPreviewOverlay";
 export { default as UploadPanel } from "@/components/UploadPanel";
+export { default as PhotoCarousel } from "@/components/PhotoCarousel";
