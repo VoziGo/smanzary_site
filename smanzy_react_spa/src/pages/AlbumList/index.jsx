@@ -5,6 +5,7 @@ import { Plus, Trash2, Edit } from 'lucide-react';
 import api from '@/services/api';
 import Button from '@/components/Button';
 import Panel from '@/components/Panel';
+import AlbumCard from '@/components/AlbumCard';
 import styles from './index.module.scss';
 
 export default function AlbumList() {
@@ -113,73 +114,15 @@ export default function AlbumList() {
                     <p className={styles.emptyMessage}>No albums yet. Create one to get started!</p>
                 ) : (
                     <div className={styles.albumsGrid}>
-                        {albums.map(album => {
-                            const coverImage = album.media_files?.[0];
-                            const getThumbnailUrl = (path) => {
-                                if (!path) return '';
-                                const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
-                                return baseUrl + path;
-                            };
-
-                            return (
-                                <div key={album.id} className={styles.albumCard}>
-                                    <div
-                                        className={styles.albumCover}
-                                        onClick={() => navigate(`/albums/${album.id}`)}
-                                    >
-                                        {coverImage && coverImage.mime_type.startsWith('image/') ? (
-                                            <img
-                                                src={getThumbnailUrl(coverImage.url)}
-                                                alt={album.title}
-                                            />
-                                        ) : (
-                                            <div className={styles.placeholderCover}>
-                                                <Edit size={48} />
-                                            </div>
-                                        )}
-                                        <div className={styles.mediaCountBadge}>
-                                            {album.media_files?.length || 0}
-                                        </div>
-                                    </div>
-
-                                    <div className={styles.albumInfo}>
-                                        <h3
-                                            className={styles.albumTitle}
-                                            onClick={() => navigate(`/albums/${album.id}`)}
-                                        >
-                                            {album.title}
-                                        </h3>
-                                        {album.description && (
-                                            <p className={styles.albumDescription}>
-                                                {album.description}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className={styles.albumActions}>
-                                        <Button
-                                            onClick={() => navigate(`/albums/${album.id}`)}
-                                            variant="primary"
-                                            className={styles.manageBtn}
-                                        >
-                                            <Edit size={16} />
-                                            Manage
-                                        </Button>
-                                        <Button
-                                            onClick={() => {
-                                                if (confirm('Are you sure you want to delete this album?')) {
-                                                    deleteAlbumMutation.mutate(album.id);
-                                                }
-                                            }}
-                                            disabled={deleteAlbumMutation.isPending}
-                                            variant="danger"
-                                        >
-                                            <Trash2 size={16} />
-                                        </Button>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {albums.map(album => (
+                            <AlbumCard
+                                key={album.id}
+                                album={album}
+                                onManage={() => navigate(`/albums/${album.id}`)}
+                                onDelete={(id) => deleteAlbumMutation.mutate(id)}
+                                isDeleting={deleteAlbumMutation.isPending}
+                            />
+                        ))}
                     </div>
                 )}
             </Panel>
