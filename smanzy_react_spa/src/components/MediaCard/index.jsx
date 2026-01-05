@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Edit, Download, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { IconButton, FileIcon, MediaPreviewOverlay } from '@/components';
 import { formatFileSize, getThumbnailUrl, isImageFile, isVideoFile } from '@/utils/fileUtils';
 import styles from './index.module.scss';
@@ -7,9 +8,6 @@ import clsx from 'clsx';
 
 export default function MediaCard({
     media,
-    onEdit,
-    onDelete,
-    onDownload,
     canManage = false,
     canView = true,
 }) {
@@ -17,6 +15,27 @@ export default function MediaCard({
 
     const isPreviewable = isImageFile(media.mime_type) || isVideoFile(media.mime_type);
     const thumbUrl = getThumbnailUrl(media);
+
+    const navigate = useNavigate();
+    const handleEdit = () => {
+        navigate(`/media/edit/${media.id}`);
+    };
+
+    const handleDelete = (media) => {
+        if (
+            window.confirm(`Are you sure you want to delete "${media.filename}"?`)
+        ) {
+            deleteMutation.mutate(media.id);
+        }
+    };
+
+    const handleDownload = (media) => {
+        window.open(
+            import.meta.env.VITE_API_BASE_URL.replace("/api", "") + media.url,
+            "_blank",
+        );
+    };
+
 
     return (
         <>
@@ -71,21 +90,21 @@ export default function MediaCard({
 
                     <div className={styles.cardActions}>
                         <IconButton
-                            onClick={() => onDownload(media)}
+                            onClick={() => handleDownload(media)}
                             disabled={!canView}
                             title="Download"
                         >
                             <Download size={18} />
                         </IconButton>
                         <IconButton
-                            onClick={() => onEdit(media)}
+                            onClick={() => handleEdit(media)}
                             disabled={!canManage}
                             title="Edit"
                         >
                             <Edit size={18} />
                         </IconButton>
                         <IconButton
-                            onClick={() => onDelete(media)}
+                            onClick={() => handleDelete(media)}
                             disabled={!canManage}
                             title="Delete"
                         >

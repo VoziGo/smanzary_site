@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Edit, X, Save, File, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Save, File, ArrowLeft } from 'lucide-react';
 import api from '@/services/api';
 import Button from '@/components/Button';
 import Panel from '@/components/Panel';
+import MediaCard from '@/components/MediaCard';
 import { formatDate } from '@/utils/dateFormat';
 import styles from './index.module.scss';
 import clsx from 'clsx';
@@ -67,7 +68,6 @@ export default function AlbumDetail() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['albums', id] });
             queryClient.invalidateQueries({ queryKey: ['albums'] });
-            setShowAddMediaForm(false);
             setMediaSearch('');
         },
         onError: (err) => {
@@ -214,7 +214,7 @@ export default function AlbumDetail() {
                                     onClick={() => setShowAddMediaForm(!showAddMediaForm)}
                                     variant={showAddMediaForm ? 'secondary' : 'primary'}
                                 >
-                                    {showAddMediaForm ? 'Close Library' : <><Plus size={16} /> Add Media</>}
+                                    {showAddMediaForm ? 'Close Library' : 'Open Library'}
                                 </Button>
                             </div>
 
@@ -248,12 +248,11 @@ export default function AlbumDetail() {
                                                             <span className={styles.itemMeta}>{media.mime_type}</span>
                                                         </div>
                                                         <Button
-                                                            onClick={() => addMediaMutation.mutate(media.id)}
-                                                            disabled={addMediaMutation.isPending || alreadyIn}
-                                                            variant={alreadyIn ? 'secondary' : 'primary'}
+                                                            onClick={alreadyIn ? () => removeMediaMutation.mutate(media.id) : () => addMediaMutation.mutate(media.id)}
+                                                            variant={alreadyIn ? 'danger' : 'primary'}
                                                             size="sm"
                                                         >
-                                                            {alreadyIn ? 'Added' : 'Add'}
+                                                            {alreadyIn ? 'Remove' : 'Add'}
                                                         </Button>
                                                     </div>
                                                 );
@@ -266,26 +265,13 @@ export default function AlbumDetail() {
                             {album.media_files && album.media_files.length > 0 ? (
                                 <div className={styles.enhancedMediaGrid}>
                                     {album.media_files.map(media => (
-                                        <div key={media.id} className={styles.mediaThumbnailCard}>
-                                            <div className={styles.cardPreview}>
-                                                {media.mime_type.startsWith('image/') ? (
-                                                    <img src={getThumbnailUrl(media.url)} alt={media.filename} />
-                                                ) : (
-                                                    <div className={styles.fileIcon}><File size={32} /></div>
-                                                )}
-                                                <button
-                                                    className={styles.removeBtn}
-                                                    onClick={() => removeMediaMutation.mutate(media.id)}
-                                                    disabled={removeMediaMutation.isPending}
-                                                    title="Remove from album"
-                                                >
-                                                    <X size={16} />
-                                                </button>
-                                            </div>
-                                            <div className={styles.cardLabel} title={media.filename}>
-                                                {media.filename}
-                                            </div>
-                                        </div>
+                                        <MediaCard
+                                            key={media.id}
+                                            media={media}
+                                            onDelete={(m) => removeMediaMutation.mutate(m.id)}
+                                            canManage={true}
+                                            canView={true}
+                                        />
                                     ))}
                                 </div>
                             ) : (
