@@ -10,8 +10,9 @@ import (
 // Version constants
 const (
 	VersionMajor = 1
-	VersionMinor = 0
-	VersionPatch = 10
+	VersionMinor = 2
+	VersionPatch = 0
+	VersionPre   = "testing - sqlc v1.30.0"
 )
 
 // Build information (can be set via ldflags during build)
@@ -44,7 +45,7 @@ func NewVersionHandler() *VersionHandler {
 // @Router /api/version [get]
 func (h *VersionHandler) GetVersionHandler(c *gin.Context) {
 	version := VersionInfo{
-		Version:   formatVersion(VersionMajor, VersionMinor, VersionPatch),
+		Version:   formatVersion(VersionMajor, VersionMinor, VersionPatch) + " - " + VersionPre,
 		BuildTime: BuildTime,
 		GitCommit: GitCommit,
 	}
