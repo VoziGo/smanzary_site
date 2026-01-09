@@ -43,7 +43,7 @@ func (ah *AlbumHandler) CreateAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	album, err := ah.albumService.CreateAlbum(user.ID, req.Title, req.Description, user.Name)
+	album, err := ah.albumService.CreateAlbum(c.Request.Context(), user.ID, req.Title, req.Description, user.Name)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
@@ -60,7 +60,7 @@ func (ah *AlbumHandler) GetAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	album, err := ah.albumService.GetAlbumByID(uint(albumID))
+	album, err := ah.albumService.GetAlbumByID(c.Request.Context(), uint(albumID))
 	if err != nil {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
 		return
@@ -79,7 +79,7 @@ func (ah *AlbumHandler) GetUserAlbumsHandler(c *gin.Context) {
 	}
 	user := authUser.(*models.User)
 
-	albums, err := ah.albumService.GetUserAlbums(user.ID)
+	albums, err := ah.albumService.GetUserAlbums(c.Request.Context(), user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -94,7 +94,7 @@ func (ah *AlbumHandler) GetUserAlbumsHandler(c *gin.Context) {
 
 // GetAllAlbumsHandler retrieves all albums from all users (admin only)
 func (ah *AlbumHandler) GetAllAlbumsHandler(c *gin.Context) {
-	albums, err := ah.albumService.GetAllAlbums()
+	albums, err := ah.albumService.GetAllAlbums(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -125,7 +125,7 @@ func (ah *AlbumHandler) UpdateAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	album, err := ah.albumService.UpdateAlbum(uint(albumID), req.Title, req.Description)
+	album, err := ah.albumService.UpdateAlbum(c.Request.Context(), uint(albumID), req.Title, req.Description)
 	if err != nil {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
 		return
@@ -151,7 +151,7 @@ func (ah *AlbumHandler) AddMediaToAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	if err := ah.albumService.AddMediaToAlbum(uint(albumID), req.MediaID); err != nil {
+	if err := ah.albumService.AddMediaToAlbum(c.Request.Context(), uint(albumID), req.MediaID); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -176,7 +176,7 @@ func (ah *AlbumHandler) RemoveMediaFromAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	if err := ah.albumService.RemoveMediaFromAlbum(uint(albumID), req.MediaID); err != nil {
+	if err := ah.albumService.RemoveMediaFromAlbum(c.Request.Context(), uint(albumID), req.MediaID); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -192,7 +192,7 @@ func (ah *AlbumHandler) DeleteAlbumHandler(c *gin.Context) {
 		return
 	}
 
-	if err := ah.albumService.DeleteAlbum(uint(albumID)); err != nil {
+	if err := ah.albumService.DeleteAlbum(c.Request.Context(), uint(albumID)); err != nil {
 		c.JSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
 		return
 	}
