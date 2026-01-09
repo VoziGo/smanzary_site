@@ -85,4 +85,4 @@ CREATE TABLE IF NOT EXISTS muvi (
     updated_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     deleted_at TIMESTAMP WITH TIME ZONE -- Soft delete
 );
-
+    

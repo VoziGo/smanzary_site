@@ -48,6 +48,11 @@ type Muvi struct {
 	DeletedAt   sql.NullTime   `json:"deleted_at"`
 }
 
+type MuviMedium struct {
+	MuviID  int32 `json:"muvi_id"`
+	MediaID int32 `json:"media_id"`
+}
+
 type Role struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
