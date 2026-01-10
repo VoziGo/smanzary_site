@@ -2,6 +2,7 @@ package mappers
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/ristep/smanzy_backend/internal/db"
 	"github.com/ristep/smanzy_backend/internal/models"
@@ -203,6 +204,40 @@ func ListPublicMediaRowsToModels(rows []db.ListPublicMediaRow) []models.Media {
 	return medias
 }
 
+func mapMediaJSON(raw interface{}) []models.Media {
+	// 1. Handle nil (database NULL)
+	if raw == nil {
+		return []models.Media{}
+	}
+
+	var data []byte
+
+	// 2. Type Assertion: Check if it's []byte (standard) or string
+	switch v := raw.(type) {
+	case []byte:
+		data = v
+	case string:
+		data = []byte(v)
+	default:
+		// Log unexpected types if necessary
+		return []models.Media{}
+	}
+
+	// 3. Unmarshal
+	if len(data) == 0 {
+		return []models.Media{}
+	}
+
+	var mediaList []models.Media
+	if err := json.Unmarshal(data, &mediaList); err != nil {
+		// Use your project's logger here
+		// log.Printf("Error unmarshalling media: %v", err)
+		return []models.Media{}
+	}
+
+	return mediaList
+}
+
 // AlbumRowToModel converts a database album row to an Album model
 func AlbumRowToModel(row interface{}) models.Album {
 	switch r := row.(type) {
@@ -224,6 +259,7 @@ func AlbumRowToModel(row interface{}) models.Album {
 			Description: r.Description.String,
 			UserID:      uint(r.UserID),
 			UserName:    r.UserName,
+			MediaFiles:  mapMediaJSON(r.MediaFiles),
 			IsPublic:    r.IsPublic.Bool,
 			IsShared:    r.IsShared.Bool,
 			CreatedAt:   r.CreatedAt,
@@ -236,6 +272,7 @@ func AlbumRowToModel(row interface{}) models.Album {
 			Description: r.Description.String,
 			UserID:      uint(r.UserID),
 			UserName:    r.UserName,
+			MediaFiles:  mapMediaJSON(r.MediaFiles),
 			IsPublic:    r.IsPublic.Bool,
 			IsShared:    r.IsShared.Bool,
 			CreatedAt:   r.CreatedAt,

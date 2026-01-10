@@ -241,7 +241,6 @@ type ListUserMediaRow struct {
 	MimeType   string       `json:"mime_type"`
 	Size       int64        `json:"size"`
 	UserID     int64        `json:"user_id"`
-	UserEmail  string       `json:"user_email"` // Add this field
 	CreatedAt  int64        `json:"created_at"`
 	UpdatedAt  int64        `json:"updated_at"`
 	DeletedAt  sql.NullTime `json:"deleted_at"`
