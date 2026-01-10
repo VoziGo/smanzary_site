@@ -80,6 +80,7 @@ func (ah *AlbumHandler) GetUserAlbumsHandler(c *gin.Context) {
 	user := authUser.(*models.User)
 
 	albums, err := ah.albumService.GetUserAlbums(c.Request.Context(), user.ID)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		return
@@ -89,6 +90,7 @@ func (ah *AlbumHandler) GetUserAlbumsHandler(c *gin.Context) {
 		albums = []models.Album{}
 	}
 
+	// Return albums
 	c.JSON(http.StatusOK, albums)
 }
 

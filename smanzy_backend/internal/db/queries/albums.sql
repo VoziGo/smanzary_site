@@ -15,14 +15,45 @@ WHERE id = $1 AND deleted_at IS NULL
 LIMIT 1;
 
 -- name: ListUserAlbums :many
-SELECT a.*, u.name as user_name
+SELECT
+    a.*, u.name as user_name,
+    COALESCE(
+        (
+            SELECT json_agg(row_to_json(media_sub))
+            FROM (
+                SELECT
+                    m.*
+                FROM media m
+                JOIN album_media am ON am.media_id = m.id
+                WHERE am.album_id = a.id
+                  AND m.deleted_at IS NULL
+                ORDER BY m.created_at DESC
+            ) media_sub
+        ),
+        '[]'::json
+    ) AS media_files
 FROM album a
 JOIN users u ON a.user_id = u.id
 WHERE a.user_id = $1 AND a.deleted_at IS NULL
 ORDER BY a.created_at DESC;
 
 -- name: ListAllAlbums :many
-SELECT a.*, u.name as user_name
+SELECT a.*, u.name as user_name,
+    COALESCE(
+        (
+            SELECT json_agg(row_to_json(media_sub))
+            FROM (
+                SELECT
+                    m.*
+                FROM media m
+                JOIN album_media am ON am.media_id = m.id
+                WHERE am.album_id = a.id
+                  AND m.deleted_at IS NULL
+                ORDER BY m.created_at DESC
+            ) media_sub
+        ),
+        '[]'::json
+    ) AS media_files
 FROM album a
 JOIN users u ON a.user_id = u.id
 WHERE a.deleted_at IS NULL

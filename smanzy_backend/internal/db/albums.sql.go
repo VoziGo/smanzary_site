@@ -134,7 +134,22 @@ func (q *Queries) GetAlbumMedia(ctx context.Context, albumID int64) ([]Medium, e
 }
 
 const listAllAlbums = `-- name: ListAllAlbums :many
-SELECT a.id, a.title, a.description, a.user_id, a.is_public, a.is_shared, a.created_at, a.updated_at, a.deleted_at, u.name as user_name
+SELECT a.id, a.title, a.description, a.user_id, a.is_public, a.is_shared, a.created_at, a.updated_at, a.deleted_at, u.name as user_name,
+    COALESCE(
+        (
+            SELECT json_agg(row_to_json(media_sub))
+            FROM (
+                SELECT
+                    m.id, m.filename, m.stored_name, m.url, m.type, m.mime_type, m.size, m.user_id, m.created_at, m.updated_at, m.deleted_at
+                FROM media m
+                JOIN album_media am ON am.media_id = m.id
+                WHERE am.album_id = a.id
+                  AND m.deleted_at IS NULL
+                ORDER BY m.created_at DESC
+            ) media_sub
+        ),
+        '[]'::json
+    ) AS media_files
 FROM album a
 JOIN users u ON a.user_id = u.id
 WHERE a.deleted_at IS NULL
@@ -152,6 +167,7 @@ type ListAllAlbumsRow struct {
 	UpdatedAt   int64          `json:"updated_at"`
 	DeletedAt   sql.NullTime   `json:"deleted_at"`
 	UserName    string         `json:"user_name"`
+	MediaFiles  interface{}    `json:"media_files"`
 }
 
 func (q *Queries) ListAllAlbums(ctx context.Context) ([]ListAllAlbumsRow, error) {
@@ -174,6 +190,7 @@ func (q *Queries) ListAllAlbums(ctx context.Context) ([]ListAllAlbumsRow, error)
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.UserName,
+			&i.MediaFiles,
 		); err != nil {
 			return nil, err
 		}
@@ -189,7 +206,23 @@ func (q *Queries) ListAllAlbums(ctx context.Context) ([]ListAllAlbumsRow, error)
 }
 
 const listUserAlbums = `-- name: ListUserAlbums :many
-SELECT a.id, a.title, a.description, a.user_id, a.is_public, a.is_shared, a.created_at, a.updated_at, a.deleted_at, u.name as user_name
+SELECT
+    a.id, a.title, a.description, a.user_id, a.is_public, a.is_shared, a.created_at, a.updated_at, a.deleted_at, u.name as user_name,
+    COALESCE(
+        (
+            SELECT json_agg(row_to_json(media_sub))
+            FROM (
+                SELECT
+                    m.id, m.filename, m.stored_name, m.url, m.type, m.mime_type, m.size, m.user_id, m.created_at, m.updated_at, m.deleted_at
+                FROM media m
+                JOIN album_media am ON am.media_id = m.id
+                WHERE am.album_id = a.id
+                  AND m.deleted_at IS NULL
+                ORDER BY m.created_at DESC
+            ) media_sub
+        ),
+        '[]'::json
+    ) AS media_files
 FROM album a
 JOIN users u ON a.user_id = u.id
 WHERE a.user_id = $1 AND a.deleted_at IS NULL
@@ -207,6 +240,7 @@ type ListUserAlbumsRow struct {
 	UpdatedAt   int64          `json:"updated_at"`
 	DeletedAt   sql.NullTime   `json:"deleted_at"`
 	UserName    string         `json:"user_name"`
+	MediaFiles  interface{}    `json:"media_files"`
 }
 
 func (q *Queries) ListUserAlbums(ctx context.Context, userID int64) ([]ListUserAlbumsRow, error) {
@@ -229,6 +263,7 @@ func (q *Queries) ListUserAlbums(ctx context.Context, userID int64) ([]ListUserA
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.UserName,
+			&i.MediaFiles,
 		); err != nil {
 			return nil, err
 		}
