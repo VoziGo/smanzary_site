@@ -48,8 +48,10 @@ export default function Home() {
                 setTotalPages(1);
             }
         } catch (error) {
-            if (api.isCancel(error) || error.name === 'CanceledError' || error.name === 'AbortError') {
-                console.log('Request canceled');
+            if (error.name === 'AbortError' || error.name === 'CanceledError' || error.name === 'AbortControllerError') {
+                // something went wrong, but it's not an error
+                // I will ignore it for now
+                return;
             } else {
                 console.error("Error fetching videos:", error);
                 // Only clear videos on error if we want to show an error state, 
