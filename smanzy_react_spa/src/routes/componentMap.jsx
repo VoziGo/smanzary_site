@@ -2,12 +2,14 @@ import MainLayout from '@/layout/MainLayout';
 import {
     Home, About, Login, Register, Profile, MediaManager,
     UpdateMedia, NotFound, MediaManagerCards, AlbumList,
-    AlbumDetail, Videos, UserManagement
+    AlbumDetail, Videos, UserManagement, Settings
 } from '@/pages';
 
-// Map string keys to actual components
 export const ComponentMap = {
+    // Layouts
     MainLayout: <MainLayout />,
+
+    // Pages
     Home: <Home />,
     Videos: <Videos />,
     About: <About />,
@@ -20,5 +22,8 @@ export const ComponentMap = {
     AlbumList: <AlbumList />,
     AlbumDetail: <AlbumDetail />,
     UserManagement: <UserManagement />,
+    Settings: <Settings />,
+
+    // System
     NotFound: <NotFound />
 };
