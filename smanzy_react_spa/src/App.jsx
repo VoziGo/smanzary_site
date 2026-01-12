@@ -1,10 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider } from 'react-router-dom';
-import router from '@/routes/index.jsx';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { VersionProvider } from '@/context/VersionContext';
 import { UserProvider } from '@/context/UserContext';
-// import { RouteContext } from '@/context/RouteContext';
+import { RouteProvider } from '@/context/RouteContext';
+import AppRouter from '@/routes/AppRouter';
 
 // The QueryClient is used to manage and cache data throughout the application.
 // Create a QueryClient instance
@@ -23,7 +22,9 @@ const App = () => {
             <QueryClientProvider client={queryClient}>
                 <VersionProvider>
                     <UserProvider>
-                        <RouterProvider router={router} />
+                        <RouteProvider>
+                            <AppRouter />
+                        </RouteProvider>
                     </UserProvider>
                 </VersionProvider>
             </QueryClientProvider>

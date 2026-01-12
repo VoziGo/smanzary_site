@@ -12,5 +12,5 @@ export { default as AlbumList } from '@/pages/AlbumList';
 export { default as AlbumDetail } from '@/pages/AlbumDetail';
 export { default as Videos } from '@/pages/Videos';
 export { default as UserManagement } from '@/pages/UserManagement';
-export { default as SiteAdmin } from '@/pages/SiteAdmin';
+export { default as Settings } from '@/pages/Settings';
 

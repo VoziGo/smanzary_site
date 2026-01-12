@@ -113,8 +113,8 @@ export default function Navbar() {
                                     </NavLink>
                                 )}
                                 {user && isAdmin && (
-                                    <NavLink to="/siteadmin" isActive={isActive("/siteadmin")}>
-                                        Site Admin
+                                    <NavLink to="/settings" isActive={isActive("/settings")}>
+                                        Settings
                                     </NavLink>
                                 )}
                             </div>
