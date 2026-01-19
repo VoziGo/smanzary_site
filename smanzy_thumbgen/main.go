@@ -45,7 +45,6 @@ func main() {
 		fmt.Println(">>> Mode: REGENERATE (Processing all existing files)")
 		performRegeneration()
 		fmt.Println(">>> Regeneration complete.")
-		return
 	}
 
 	fmt.Println(">>> Mode: WATCHER (Waiting for changes in ./uploads)")
@@ -71,6 +70,9 @@ func processFile(path string) {
 	} else if isVideo(fileName) {
 		fmt.Printf("[Create/Update] Video: %s\n", fileName)
 		processVideo(path, fileName)
+	} else if isHeic(fileName) {
+		fmt.Printf("[Create/Update] HEIC: %s\n", fileName)
+		processHEIC(path, fileName)
 	}
 }
 
@@ -83,7 +85,6 @@ func deleteThumbnailsFor(originalName string) {
 	for _, size := range targetSizes {
 		thumbPath := filepath.Join(uploadDir, size.dirName, thumbName)
 
-		// Check if it exists before trying to delete (avoid error logs)
 		if _, err := os.Stat(thumbPath); err == nil {
 			if err := os.Remove(thumbPath); err != nil {
 				log.Printf("   Error deleting thumb %s: %v", thumbPath, err)
@@ -108,24 +109,44 @@ func processImage(path, originalName string) {
 }
 
 func processVideo(path, originalName string) {
-	cmd := exec.Command("ffmpeg", "-ss", "00:00:01", "-i", path, "-vframes", "1", "-f", "image2", "-pipe:1")
-	var buffer bytes.Buffer
-	cmd.Stdout = &buffer
-	cmd.Stderr = nil // Suppress noisy ffmpeg logs
+	// Extract frame at 00:00:01
+	cmd := exec.Command("ffmpeg", "-ss", "00:00:01", "-i", path, "-vframes", "1", "-f", "mjpeg", "pipe:1")
+	runFFmpegPipe(cmd, path, originalName)
+}
+
+func processHEIC(path, originalName string) {
+	// HEIC is processed exactly like video, but we don't seek (-ss).
+	// We just take the first frame (which is the main image).
+	cmd := exec.Command("ffmpeg", "-i", path, "-vframes", "1", "-f", "mjpeg", "pipe:1")
+	runFFmpegPipe(cmd, path, originalName)
+}
+
+// Common helper to run FFmpeg and pipe output to image decoder
+func runFFmpegPipe(cmd *exec.Cmd, path, originalName string) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		// Fallback to frame 0
-		cmd = exec.Command("ffmpeg", "-i", path, "-vframes", "1", "-f", "image2", "-pipe:1")
-		cmd.Stdout = &buffer
-		if err := cmd.Run(); err != nil {
-			log.Printf("   Error extracting video frame: %v", err)
+		// If video failed at 1s, try fallback to 0s
+		if isVideo(originalName) {
+			fallbackCmd := exec.Command("ffmpeg", "-i", path, "-vframes", "1", "-f", "mjpeg", "pipe:1")
+			fallbackCmd.Stdout = &stdout
+			fallbackCmd.Stderr = &stderr
+			if err := fallbackCmd.Run(); err != nil {
+				log.Printf("   FFmpeg error processing %s: %v\n   Stderr: %s", path, err, stderr.String())
+				return
+			}
+		} else {
+			log.Printf("   FFmpeg error processing %s: %v\n   Stderr: %s", path, err, stderr.String())
 			return
 		}
 	}
 
-	img, _, err := image.Decode(&buffer)
+	img, _, err := image.Decode(&stdout)
 	if err != nil {
-		log.Printf("   Error decoding video buffer: %v", err)
+		log.Printf("   Error decoding media buffer for %s: %v", path, err)
 		return
 	}
 	saveThumbnails(img, originalName)
@@ -145,7 +166,6 @@ func saveThumbnails(img image.Image, originalName string) {
 			continue
 		}
 
-		// Encode
 		if err := jpeg.Encode(out, resizedImg, &jpeg.Options{Quality: 80}); err != nil {
 			log.Printf("   Error encoding jpeg: %v", err)
 		}
@@ -174,17 +194,14 @@ func startWatcher() {
 					return
 				}
 
-				// Ignore events inside the thumbnail folders to prevent loops
 				if strings.Contains(event.Name, "320x200") || strings.Contains(event.Name, "800x600") {
 					continue
 				}
 
-				// Handle CREATION / UPDATE
 				if event.Op&fsnotify.Create == fsnotify.Create || event.Op&fsnotify.Write == fsnotify.Write {
 					processFile(event.Name)
 				}
 
-				// Handle DELETION / RENAME (Moving a file out is treated as a rename)
 				if event.Op&fsnotify.Remove == fsnotify.Remove || event.Op&fsnotify.Rename == fsnotify.Rename {
 					deleteThumbnailsFor(filepath.Base(event.Name))
 				}
@@ -209,7 +226,6 @@ func startWatcher() {
 // -------------------------
 
 func runGarbageCollector() {
-	// 1. Index all currently valid "base names" in the upload folder
 	validBasenames := make(map[string]bool)
 
 	files, err := os.ReadDir(uploadDir)
@@ -222,14 +238,12 @@ func runGarbageCollector() {
 		if f.IsDir() || strings.HasPrefix(f.Name(), ".") {
 			continue
 		}
-		if isImage(f.Name()) || isVideo(f.Name()) {
-			// Store "myvideo" from "myvideo.mp4"
+		if isImage(f.Name()) || isVideo(f.Name()) || isHeic(f.Name()) {
 			base := strings.TrimSuffix(f.Name(), filepath.Ext(f.Name()))
 			validBasenames[base] = true
 		}
 	}
 
-	// 2. Scan thumbnail folders and delete orphans
 	for _, size := range targetSizes {
 		thumbDir := filepath.Join(uploadDir, size.dirName)
 		thumbs, err := os.ReadDir(thumbDir)
@@ -241,12 +255,7 @@ func runGarbageCollector() {
 			if t.IsDir() {
 				continue
 			}
-
-			// Thumbnails are always .jpg. Get the base name.
-			// e.g. "myvideo.jpg" -> "myvideo"
 			thumbBase := strings.TrimSuffix(t.Name(), filepath.Ext(t.Name()))
-
-			// If "myvideo" is not in our valid list, delete the thumbnail
 			if !validBasenames[thumbBase] {
 				fullPath := filepath.Join(thumbDir, t.Name())
 				fmt.Printf("[GC] Deleting orphan: %s\n", fullPath)
@@ -282,4 +291,9 @@ func isImage(filename string) bool {
 func isVideo(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	return ext == ".mp4" || ext == ".mov" || ext == ".avi" || ext == ".mkv" || ext == ".webm"
+}
+
+func isHeic(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	return ext == ".heic" || ext == ".heif"
 }
