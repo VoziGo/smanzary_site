@@ -159,7 +159,7 @@ func main() {
 		// Serve thumbnail files
 		// :size is the thumbnail size (e.g., 320x200, 800x600)
 		// :name is the filename
-		api.GET("/media/files/thumbnails/:size/:name", mediaHandler.ServeThumbnailHandler)
+		api.GET("/media/thumbnails/:size/:name", mediaHandler.ServeThumbnailHandler)
 	}
 
 	// == PROTECTED ROUTES ==

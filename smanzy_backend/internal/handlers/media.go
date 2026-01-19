@@ -17,10 +17,11 @@ import (
 
 // MediaHandler handles media-related HTTP requests
 type MediaHandler struct {
-	conn         *sql.DB
-	queries      *db.Queries
-	uploadDir    string
-	mediaBaseURL string
+	conn             *sql.DB
+	queries          *db.Queries
+	uploadDir        string
+	mediaBaseURL     string
+	thumbnailBaseURL string
 }
 
 // NewMediaHandler creates a new media handler
@@ -38,6 +39,11 @@ func NewMediaHandler(conn *sql.DB, queries *db.Queries) *MediaHandler {
 		mediaBaseURL = "/api/media/files/"
 	}
 
+	thumbnailBaseURL := os.Getenv("THUMBNAIL_BASE_URL")
+	if thumbnailBaseURL == "" {
+		thumbnailBaseURL = "/api/media/thumbnails/"
+	}
+
 	// Ensure upload directory exists (fail loudly if it cannot be created)
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		fmt.Printf("ERROR: failed to create upload directory %q: %v\n", uploadDir, err)
@@ -47,17 +53,18 @@ func NewMediaHandler(conn *sql.DB, queries *db.Queries) *MediaHandler {
 	fmt.Printf("Media base URL: %s\n", mediaBaseURL)
 
 	return &MediaHandler{
-		conn:         conn,
-		queries:      queries,
-		uploadDir:    uploadDir,
-		mediaBaseURL: mediaBaseURL,
+		conn:             conn,
+		queries:          queries,
+		uploadDir:        uploadDir,
+		mediaBaseURL:     mediaBaseURL,
+		thumbnailBaseURL: thumbnailBaseURL,
 	}
 }
 
 // GenThumbnailURL generates thumbnail URL
 func (mh *MediaHandler) GenThumbnailURL(storedName string, size string) string {
 	baseName := strings.TrimSuffix(storedName, filepath.Ext(storedName))
-	return mh.mediaBaseURL + size + "/" + baseName + ".jpg"
+	return mh.thumbnailBaseURL + size + "/" + baseName + ".jpg"
 }
 
 // GenMediaURL generates media URL
