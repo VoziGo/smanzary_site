@@ -27,20 +27,13 @@ var targetSizes = []struct {
 	{"800x600", 800, 600},
 }
 
-var uploadDir = "../smanzy_data/uploads"
+const uploadDir = "./uploads"
 
-// Command line flags
 var forceRegen bool
 
 func main() {
-	// 1. Parse Flags
 	flag.BoolVar(&forceRegen, "regenerate", false, "Scans folder and regenerates all thumbnails, then exits.")
 	flag.Parse()
-
-	// Override uploadDir from environment if present
-	if envDir := os.Getenv("UPLOAD_DIR"); envDir != "" {
-		uploadDir = envDir
-	}
 
 	setupDirectories()
 
@@ -48,14 +41,14 @@ func main() {
 	fmt.Println(">>> Running Garbage Collector...")
 	runGarbageCollector()
 
-	// 2. Mode Selection
 	if forceRegen {
 		fmt.Println(">>> Mode: REGENERATE (Processing all existing files)")
 		performRegeneration()
 		fmt.Println(">>> Regeneration complete.")
+		return
 	}
 
-	fmt.Printf(">>> Mode: WATCHER (Waiting for new files in %s)\n", uploadDir)
+	fmt.Println(">>> Mode: WATCHER (Waiting for changes in ./uploads)")
 	startWatcher()
 }
 
@@ -64,25 +57,21 @@ func main() {
 // -------------------------
 
 func processFile(path string) {
-	// Wait a moment to ensure file write is complete (prevents processing partial files)
+	// Debounce: Wait for file write/lock to release
 	time.Sleep(500 * time.Millisecond)
 
 	fileName := filepath.Base(path)
-
-	// Ignore hidden files or temp files
 	if strings.HasPrefix(fileName, ".") {
 		return
 	}
 
-	// Determine type
 	if isImage(fileName) {
-		fmt.Printf("[Image Detected] %s\n", fileName)
+		fmt.Printf("[Create/Update] Image: %s\n", fileName)
 		processImage(path, fileName)
 	} else if isVideo(fileName) {
-		fmt.Printf("[Video Detected] %s\n", fileName)
+		fmt.Printf("[Create/Update] Video: %s\n", fileName)
 		processVideo(path, fileName)
 	}
-	// If neither, we ignore it silently
 }
 
 func deleteThumbnailsFor(originalName string) {
@@ -105,6 +94,10 @@ func deleteThumbnailsFor(originalName string) {
 	}
 }
 
+// -------------------------
+// Processing Functions
+// -------------------------
+
 func processImage(path, originalName string) {
 	img, err := imaging.Open(path)
 	if err != nil {
@@ -115,16 +108,13 @@ func processImage(path, originalName string) {
 }
 
 func processVideo(path, originalName string) {
-	// FFmpeg command to extract frame at 1 second
 	cmd := exec.Command("ffmpeg", "-ss", "00:00:01", "-i", path, "-vframes", "1", "-f", "image2", "-pipe:1")
 	var buffer bytes.Buffer
 	cmd.Stdout = &buffer
-
-	// We suppress stderr unless there is an error to keep console clean
-	cmd.Stderr = nil
+	cmd.Stderr = nil // Suppress noisy ffmpeg logs
 
 	if err := cmd.Run(); err != nil {
-		// Fallback to 00:00:00
+		// Fallback to frame 0
 		cmd = exec.Command("ffmpeg", "-i", path, "-vframes", "1", "-f", "image2", "-pipe:1")
 		cmd.Stdout = &buffer
 		if err := cmd.Run(); err != nil {
@@ -146,29 +136,25 @@ func saveThumbnails(img image.Image, originalName string) {
 	outputName := baseName + ".jpg"
 
 	for _, size := range targetSizes {
-		// Resize
 		resizedImg := imaging.Fit(img, size.width, size.height, imaging.Lanczos)
-
 		outputPath := filepath.Join(uploadDir, size.dirName, outputName)
 
-		// Create file
 		out, err := os.Create(outputPath)
 		if err != nil {
 			log.Printf("   Error creating output file: %v", err)
 			continue
 		}
-		defer out.Close()
 
-		// Save JPG
+		// Encode
 		if err := jpeg.Encode(out, resizedImg, &jpeg.Options{Quality: 80}); err != nil {
 			log.Printf("   Error encoding jpeg: %v", err)
 		}
+		out.Close()
 	}
-	fmt.Printf("   -> Generated thumbs for %s\n", originalName)
 }
 
 // -------------------------
-// Watcher & Regeneration
+// Watcher
 // -------------------------
 
 func startWatcher() {
@@ -188,20 +174,19 @@ func startWatcher() {
 					return
 				}
 
-				// We only care about Create or Write events.
-				// We exclude Rename/Chmod to prevent duplicate processing.
-				isCreate := event.Op&fsnotify.Create == fsnotify.Create
-				isWrite := event.Op&fsnotify.Write == fsnotify.Write
+				// Ignore events inside the thumbnail folders to prevent loops
+				if strings.Contains(event.Name, "320x200") || strings.Contains(event.Name, "800x600") {
+					continue
+				}
 
-				if isCreate || isWrite {
-					// CRITICAL: Ignore the thumbnail directories themselves!
-					// Otherwise, generating a thumb creates a file event,
-					// which triggers the watcher again = Infinite Loop.
-					if strings.Contains(event.Name, "320x200") || strings.Contains(event.Name, "800x600") {
-						continue
-					}
-
+				// Handle CREATION / UPDATE
+				if event.Op&fsnotify.Create == fsnotify.Create || event.Op&fsnotify.Write == fsnotify.Write {
 					processFile(event.Name)
+				}
+
+				// Handle DELETION / RENAME (Moving a file out is treated as a rename)
+				if event.Op&fsnotify.Remove == fsnotify.Remove || event.Op&fsnotify.Rename == fsnotify.Rename {
+					deleteThumbnailsFor(filepath.Base(event.Name))
 				}
 
 			case err, ok := <-watcher.Errors:
@@ -213,48 +198,10 @@ func startWatcher() {
 		}
 	}()
 
-	err = watcher.Add(uploadDir)
-	if err != nil {
+	if err := watcher.Add(uploadDir); err != nil {
 		log.Fatal(err)
 	}
-
-	// Block forever
 	<-done
-}
-
-func performRegeneration() {
-	entries, err := os.ReadDir(uploadDir)
-	if err != nil {
-		log.Fatalf("Failed to read dir: %v", err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		processFile(filepath.Join(uploadDir, entry.Name()))
-	}
-}
-
-// -------------------------
-// Helpers
-// -------------------------
-
-func setupDirectories() {
-	for _, size := range targetSizes {
-		path := filepath.Join(uploadDir, size.dirName)
-		_ = os.MkdirAll(path, 0755)
-	}
-}
-
-func isImage(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp"
-}
-
-func isVideo(filename string) bool {
-	ext := strings.ToLower(filepath.Ext(filename))
-	return ext == ".mp4" || ext == ".mov" || ext == ".avi" || ext == ".mkv" || ext == ".webm"
 }
 
 // -------------------------
@@ -307,4 +254,32 @@ func runGarbageCollector() {
 			}
 		}
 	}
+}
+
+func performRegeneration() {
+	entries, err := os.ReadDir(uploadDir)
+	if err != nil {
+		log.Fatalf("Failed to read dir: %v", err)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			processFile(filepath.Join(uploadDir, entry.Name()))
+		}
+	}
+}
+
+func setupDirectories() {
+	for _, size := range targetSizes {
+		_ = os.MkdirAll(filepath.Join(uploadDir, size.dirName), 0755)
+	}
+}
+
+func isImage(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".bmp"
+}
+
+func isVideo(filename string) bool {
+	ext := strings.ToLower(filepath.Ext(filename))
+	return ext == ".mp4" || ext == ".mov" || ext == ".avi" || ext == ".mkv" || ext == ".webm"
 }
