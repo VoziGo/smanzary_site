@@ -1,15 +1,22 @@
 import styles from './index.module.scss';
 import { Edit, Trash2 } from 'lucide-react';
 import Button from '@/components/Button';
+import { getMediaUrl, getThumbnailUrl } from '@/utils/fileUtils';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/services/api';
 
 export default function AlbumCard({ album, onManage, onDelete, isDeleting }) {
-    const coverImage = album.media_files?.[0];
 
-    const getThumbnailUrl = (path) => {
-        if (!path) return '';
-        const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
-        return baseUrl + path;
-    };
+    const { data: mediaRows } = useQuery({
+        queryKey: ['albums', album.id, 'media'],
+        queryFn: () => api.get(`/media/album/${album.id}`).then((res) => res.data),
+        enabled: !!album.id,
+    });
+
+    const albumMedia = mediaRows?.data || [];
+    const coverImage = albumMedia[0];
+
+    const thumbUrl = getThumbnailUrl(coverImage);
 
     return (
         <div className={styles.albumCard}>
@@ -19,7 +26,7 @@ export default function AlbumCard({ album, onManage, onDelete, isDeleting }) {
             >
                 {coverImage && coverImage.mime_type.startsWith('image/') ? (
                     <img
-                        src={getThumbnailUrl(coverImage.url)}
+                        src={thumbUrl}
                         alt={album.title}
                     />
                 ) : (
@@ -28,7 +35,7 @@ export default function AlbumCard({ album, onManage, onDelete, isDeleting }) {
                     </div>
                 )}
                 <div className={styles.mediaCountBadge}>
-                    {album.media_files?.length || 0}
+                    {albumMedia?.length || 0}
                 </div>
                 {album.user_name && (
                     <div className={styles.userNameOverlay}>

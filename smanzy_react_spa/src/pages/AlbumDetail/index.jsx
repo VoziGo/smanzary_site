@@ -28,7 +28,16 @@ export default function AlbumDetail() {
         retry: false,
     });
 
-    // Fetch all media for adding to album
+    // Fetch album media
+    const { isPending: mediaPending, data: albumMediaRows } = useQuery({
+        queryKey: ['albums', id, 'media'],
+        queryFn: () => api.get(`/media/album/${id}`).then((res) => res.data),
+        retry: false,
+    });
+
+    const albumMedia = albumMediaRows?.data || [];
+
+    // Fetch all media for adding to album (library)
     const { data: mediaData } = useQuery({
         queryKey: ['media', 'all'],
         queryFn: () => api.get('/media?limit=1000').then((res) => res.data),
@@ -66,7 +75,7 @@ export default function AlbumDetail() {
     const addMediaMutation = useMutation({
         mutationFn: (mediaId) => api.post(`/albums/${id}/media`, { media_id: mediaId }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['albums', id] });
+            queryClient.invalidateQueries({ queryKey: ['albums', id, 'media'] });
             queryClient.invalidateQueries({ queryKey: ['albums'] });
             setMediaSearch('');
         },
@@ -81,7 +90,7 @@ export default function AlbumDetail() {
             data: { media_id: mediaId }
         }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['albums', id] });
+            queryClient.invalidateQueries({ queryKey: ['albums', id, 'media'] });
             queryClient.invalidateQueries({ queryKey: ['albums'] });
         },
         onError: (err) => {
@@ -96,7 +105,7 @@ export default function AlbumDetail() {
     };
 
     const isMediaInAlbum = (mediaId) => {
-        return album?.media_files?.some(m => m.id === mediaId);
+        return albumMedia.some(m => m.id === mediaId);
     };
 
     const handleEditFormChange = (e) => {
@@ -201,7 +210,7 @@ export default function AlbumDetail() {
                                 <div className={styles.albumDetailsView}>
                                     <p><strong>Title:</strong> {album.title}</p>
                                     <p><strong>Description:</strong> {album.description || <span style={{ fontStyle: 'italic', opacity: 0.6 }}>No description</span>}</p>
-                                    <p><strong>Media Count:</strong> {album.media_files?.length || 0} items</p>
+                                    <p><strong>Media Count:</strong> {albumMedia.length} items</p>
                                     <p><strong>Created:</strong> {formatDate(album.created_at)}</p>
                                 </div>
                             )}
@@ -262,9 +271,9 @@ export default function AlbumDetail() {
                                 </div>
                             )}
 
-                            {album.media_files && album.media_files.length > 0 ? (
+                            {albumMedia && albumMedia.length > 0 ? (
                                 <div className={styles.enhancedMediaGrid}>
-                                    {album.media_files.map(media => (
+                                    {albumMedia.map(media => (
                                         <MediaCard
                                             key={media.id}
                                             media={media}
@@ -276,7 +285,7 @@ export default function AlbumDetail() {
                                 </div>
                             ) : (
                                 <div className={styles.emptyMessage}>
-                                    <p>This album is empty. Add media from your library!</p>
+                                    <p>{mediaPending ? 'Loading media...' : 'This album is empty. Add media from your library!'}</p>
                                 </div>
                             )}
                         </div>

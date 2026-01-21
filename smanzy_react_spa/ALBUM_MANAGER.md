@@ -6,19 +6,32 @@ A complete album management interface has been added to the React SPA frontend f
 
 ## New Files Created
 
-### 1. **AlbumManager Page Component**
-- **Location**: `src/pages/AlbumManager/index.jsx`
+### 1. **AlbumList Page Component**
+- **Location**: `src/pages/AlbumList/index.jsx`
 - **Features**:
+  - View all user albums in a grid
   - Create new albums with title and description
-  - View all user albums
-  - Add media files to albums
-  - Remove media files from albums
+  - Quick access to album management
   - Delete albums (soft delete)
-  - Search and filter media when adding
-  - Expandable album details view
+
+### 2. **AlbumDetail Page Component**
+- **Location**: `src/pages/AlbumDetail/index.jsx`
+- **Features**:
+  - View specific album details
+  - Add media files from the global library
+  - Remove media files from the album
+  - Update album title and description
+  - Optimized media fetching (independent request from album metadata)
+
+### 3. **AlbumCard Component**
+- **Location**: `src/components/AlbumCard/index.jsx`
+- **Features**:
+  - Reusable card for displaying album info
+  - Dynamic cover image fetching (uses the first media item in the album)
+  - Accurate media count badge powered by dedicated queries
 
 ### 2. **AlbumManager Styles**
-- **Location**: `src/pages/AlbumManager/index.module.scss`
+- **Location**: `src/pages/AlbumList/index.module.scss`, `src/pages/AlbumDetail/index.module.scss`
 - **Features**:
   - Responsive grid layout
   - Dark/light theme support using CSS variables
@@ -33,28 +46,27 @@ A complete album management interface has been added to the React SPA frontend f
 - Added new route: `/albums` -> AlbumManager component
 
 ### 2. **src/pages/index.jsx**
-- Exported AlbumManager component
+- Exported AlbumList and AlbumDetail components
 
 ### 3. **src/components/Navbar/index.jsx**
 - Added "Albums" navigation link (visible when logged in)
 - Added to both desktop and mobile navigation
-- Route: `/albums`
+- Route: `/albums` (List), `/albums/:id` (Detail)
 
 ## Component Architecture
 
-### AlbumManager Component
+### AlbumList & AlbumDetail Components
 
-**State Management**:
-- `showCreateForm` - Toggle create album form
-- `formData` - Album title and description
-- `selectedAlbum` - Currently expanded album
-- `showAddMediaForm` - Toggle add media form
-- `mediaSearch` - Search term for filtering media
+**Decoupled Architecture**:
+- Album metadata (Title, Description) and Media Content are fetched in separate requests.
+- This allows for faster initial page loads and more efficient cache management.
 
 **React Query Hooks**:
-- `useQuery` - Fetch user albums and available media
-- `useMutation` - Create, delete, add/remove media operations
-- `useQueryClient` - Cache invalidation
+- `useQuery(['albums'])` - Fetch list of user albums
+- `useQuery(['albums', id])` - Fetch single album metadata
+- `useQuery(['albums', id, 'media'])` - Fetch media files for specific album
+- `useMutation` - Create, update, delete, add/remove media operations
+- `useQueryClient` - Granular cache invalidation (e.g., only updating media list without refetching album info)
 
 **Features**:
 1. **Create Album**
@@ -86,15 +98,16 @@ A complete album management interface has been added to the React SPA frontend f
 ### Endpoints Used
 
 **Albums**:
-- `GET /albums` - Get user's albums
+- `GET /albums` - Get user's albums (metadata only)
 - `POST /albums` - Create new album
-- `GET /albums/:id` - Get album details
+- `GET /albums/:id` - Get album details (metadata only)
 - `PUT /albums/:id` - Update album
 - `DELETE /albums/:id` - Delete album
 - `POST /albums/:id/media` - Add media to album
 - `DELETE /albums/:id/media` - Remove media from album
 
 **Media**:
+- `GET /media/album/:id` - List media files for a specific album (Optimized)
 - `GET /media?limit=1000` - Get all media files (for adding to albums)
 
 ## UI/UX Features
