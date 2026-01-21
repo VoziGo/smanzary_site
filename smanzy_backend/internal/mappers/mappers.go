@@ -8,7 +8,9 @@ import (
 	"github.com/ristep/smanzy_backend/internal/models"
 )
 
-// UserRowToModel converts a database user row to a User model
+// UserRowToModel converts a database user row to a User model.
+// Since sqlc generates distinct struct types for each query (even if fields are identical),
+// this function uses a type switch to handle all known user-related database row types.
 func UserRowToModel(row interface{}) models.User {
 	// Handle different row types from sqlc
 	switch r := row.(type) {
@@ -57,6 +59,7 @@ func UserRowToModel(row interface{}) models.User {
 			CreatedAt:     r.CreatedAt,
 			UpdatedAt:     r.UpdatedAt,
 		}
+		// ListUsersRow includes soft delete information which needs to be mapped optionally
 		if r.DeletedAt.Valid {
 			user.DeletedAt = &r.DeletedAt.Time
 		}
@@ -92,7 +95,7 @@ func UserRowToModel(row interface{}) models.User {
 			UpdatedAt:     r.UpdatedAt,
 		}
 	default:
-		// Return empty user if type not recognized
+		// Return empty user if type not recognized to avoid panics
 		return models.User{}
 	}
 }
@@ -106,14 +109,16 @@ func ListUsersRowsToModels(rows []db.ListUsersRow) []models.User {
 	return users
 }
 
-// MediaRowToModel converts a database media row to a Media model
-func MediaRowToModel(row interface{}) models.Media {
+// MediaRowToModel converts a database media row to a Media model.
+// It also handles the generation of full URLs for files and thumbnails based on the API paths.
+func MediaRowToModel(row any) models.Media {
 	switch r := row.(type) {
 	case db.GetMediaByIDRow:
 		return models.Media{
-			ID:           uint(r.ID),
-			Filename:     r.Filename,
-			StoredName:   r.StoredName,
+			ID:         uint(r.ID),
+			Filename:   r.Filename,
+			StoredName: r.StoredName,
+			// Construct public URLs for the media file and its thumbnail
 			URL:          "/api/media/files/" + r.StoredName,
 			ThumbnailURL: "/api/media/thumbnails/320x200/" + r.StoredName[:len(r.StoredName)-len(filepath.Ext(r.StoredName))] + ".jpg",
 			Type:         r.Type,
@@ -271,7 +276,8 @@ func ListAllAlbumsRowsToModels(rows []db.ListAllAlbumsRow) []models.Album {
 	return albums
 }
 
-// NullStringToString safely converts sql.NullString to string
+// NullStringToString safely converts sql.NullString to string.
+// Returns empty string if invalid.
 func NullStringToString(ns sql.NullString) string {
 	if ns.Valid {
 		return ns.String
@@ -279,7 +285,8 @@ func NullStringToString(ns sql.NullString) string {
 	return ""
 }
 
-// NullInt64ToInt safely converts sql.NullInt64 to int
+// NullInt64ToInt safely converts sql.NullInt64 to int.
+// Returns 0 if invalid.
 func NullInt64ToInt(ni sql.NullInt64) int {
 	if ni.Valid {
 		return int(ni.Int64)
@@ -287,7 +294,8 @@ func NullInt64ToInt(ni sql.NullInt64) int {
 	return 0
 }
 
-// NullBoolToBool safely converts sql.NullBool to bool
+// NullBoolToBool safely converts sql.NullBool to bool.
+// Returns false if invalid.
 func NullBoolToBool(nb sql.NullBool) bool {
 	if nb.Valid {
 		return nb.Bool
