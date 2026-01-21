@@ -14,8 +14,6 @@ type Album struct {
 	IsPublic bool `json:"is_public"`
 	IsShared bool `json:"is_shared"`
 
-	MediaFiles []Media `json:"media_files"`
-
 	CreatedAt int64      `json:"created_at"`
 	UpdatedAt int64      `json:"updated_at"`
 	DeletedAt *time.Time `json:"-"`

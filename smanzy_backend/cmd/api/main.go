@@ -198,11 +198,12 @@ func main() {
 		// Media routes (authenticated)
 		media := protectedAPI.Group("/media")
 		{
-			media.POST("", mediaHandler.UploadHandler)                     // Upload a new file
-			media.GET("/:id", mediaHandler.GetMediaHandler)                // Get file content
-			media.GET("/:id/details", mediaHandler.GetMediaDetailsHandler) // Get file metadata
-			media.PUT("/:id", mediaHandler.UpdateMediaHandler)             // Edit file (Owner or Admin)
-			media.DELETE("/:id", mediaHandler.DeleteMediaHandler)          // Delete file (Owner or Admin)
+			media.POST("", mediaHandler.UploadHandler)                        // Upload a new file
+			media.GET("/:id", mediaHandler.GetMediaHandler)                   // Get file content
+			media.GET("/:id/details", mediaHandler.GetMediaDetailsHandler)    // Get file metadata
+			media.GET("/album/:album_id", mediaHandler.ListAlbumMediaHandler) // List media for an album
+			media.PUT("/:id", mediaHandler.UpdateMediaHandler)                // Edit file (Owner or Admin)
+			media.DELETE("/:id", mediaHandler.DeleteMediaHandler)             // Delete file (Owner or Admin)
 		}
 
 		// Album routes (authenticated)

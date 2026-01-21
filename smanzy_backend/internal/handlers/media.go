@@ -315,6 +315,45 @@ func (mh *MediaHandler) ListPublicMediasHandler(c *gin.Context) {
 	}})
 }
 
+// ListAlbumMediaHandler returns all media files for a specific album
+func (mh *MediaHandler) ListAlbumMediaHandler(c *gin.Context) {
+	albumIDStr := c.Param("album_id")
+	albumID, err := strconv.ParseInt(albumIDStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid album ID"})
+		return
+	}
+
+	mediaRows, err := mh.queries.GetAlbumMedia(c.Request.Context(), albumID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Database error fetching album media"})
+		return
+	}
+
+	var medias []models.Media
+	for _, row := range mediaRows {
+		medias = append(medias, models.Media{
+			ID:           uint(row.ID),
+			Filename:     row.Filename,
+			StoredName:   row.StoredName,
+			URL:          mh.GenMediaURL(row.StoredName),
+			ThumbnailURL: mh.GenThumbnailURL(row.StoredName, "320x200"),
+			Type:         row.Type.String,
+			MimeType:     row.MimeType.String,
+			Size:         row.Size,
+			UserID:       uint(row.UserID),
+			CreatedAt:    row.CreatedAt,
+			UpdatedAt:    row.UpdatedAt,
+		})
+	}
+
+	if medias == nil {
+		medias = []models.Media{}
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{Data: medias})
+}
+
 func GenMediaURL(s string) {
 	panic("unimplemented")
 }

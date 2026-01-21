@@ -67,13 +67,7 @@ func (as *AlbumService) GetAlbumByID(ctx context.Context, albumID uint) (*models
 		return nil, errors.New("failed to fetch album owner information")
 	}
 
-	// Fetch media files
-	mediaRows, err := as.queries.GetAlbumMedia(ctx, albumRow.ID)
-	if err != nil {
-		return nil, errors.New("failed to fetch album media")
-	}
-
-	album := &models.Album{
+	return &models.Album{
 		ID:          uint(albumRow.ID),
 		Title:       albumRow.Title,
 		Description: albumRow.Description.String,
@@ -83,14 +77,7 @@ func (as *AlbumService) GetAlbumByID(ctx context.Context, albumID uint) (*models
 		IsShared:    albumRow.IsShared.Bool,
 		CreatedAt:   albumRow.CreatedAt,
 		UpdatedAt:   albumRow.UpdatedAt,
-	}
-
-	// Map media files
-	for _, m := range mediaRows {
-		album.MediaFiles = append(album.MediaFiles, mappers.MediaRowToModel(m))
-	}
-
-	return album, nil
+	}, nil
 }
 
 // GetUserAlbums retrieves all albums for a user

@@ -113,7 +113,7 @@ smanzy_backend/
 - Add/remove media from albums
 - Soft delete albums
 - User-specific album isolation
-- Album details with associated media
+- Album details (media listing available via separate endpoint)
 
 ### 8. API Routes
 
@@ -125,6 +125,7 @@ smanzy_backend/
 - `GET /health` - Health check
 - `GET /api/media` - Public media listing
 - `GET /api/media/files/:name` - Serve uploaded files
+- `GET /api/media/album/:album_id` - List media for a specific album (Authenticated)
 
 #### Protected Routes (Authenticated)
 
@@ -140,7 +141,7 @@ smanzy_backend/
 
 - `POST /api/albums` - Create new album
 - `GET /api/albums` - Get all user albums
-- `GET /api/albums/:id` - Get specific album
+- `GET /api/albums/:id` - Get specific album details (no longer returns media files)
 - `PUT /api/albums/:id` - Update album details
 - `POST /api/albums/:id/media` - Add media to album
 - `DELETE /api/albums/:id/media` - Remove media from album

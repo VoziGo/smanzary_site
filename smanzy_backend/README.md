@@ -256,6 +256,14 @@ GET /api/videos/:id
 GET /api/media/files/:name
 ```
 
+#### Get Media for a Specific Album (Authenticated)
+
+```http
+GET /api/media/album/:album_id
+```
+
+Returns a list of all media files belonging to the specified album.
+
 ### Protected Endpoints (Requires JWT)
 
 #### Get User Profile
@@ -308,11 +316,13 @@ Content-Type: application/json
 GET /api/albums
 ```
 
-#### Get Specific Album with Media
+#### Get Specific Album Details
 
 ```http
 GET /api/albums/:id
 ```
+
+Note: This endpoint no longer returns the `media_files` list. Use the new media listing endpoint below to fetch media for an album.
 
 #### Update Album Details
 
