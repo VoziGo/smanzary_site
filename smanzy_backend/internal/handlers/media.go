@@ -41,7 +41,7 @@ func NewMediaHandler(conn *sql.DB, queries *db.Queries) *MediaHandler {
 
 	thumbnailBaseURL := os.Getenv("THUMBNAIL_BASE_URL")
 	if thumbnailBaseURL == "" {
-		thumbnailBaseURL = "/api/media/"
+		thumbnailBaseURL = "/api/thumbnail/"
 	}
 
 	// Ensure upload directory exists (fail loudly if it cannot be created)
