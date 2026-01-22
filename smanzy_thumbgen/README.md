@@ -30,8 +30,10 @@ The service watches the configured `./uploads` directory. When new media is adde
 ### Output Sizes
 
 Thumbnails are generated in the following subdirectories within `uploads`:
-- `320x200/`: Small thumbnails
-- `800x600/`: Medium thumbnails
+- `160x100/`
+- `320x200/`
+- `640x400/`
+- `800x600/`
 
 ## Usage
 
@@ -98,7 +100,7 @@ Regenerate thumbnails for all files and exit:
 go run main.go --regenerate
 ```
 
-Note: The service will create required subdirectories under `./uploads` (e.g. `320x200`, `800x600`).
+Note: The service will create required subdirectories under `./uploads` (e.g. `160x100`, `320x200`, `640x400`, `800x600`).
 
 ## Configuration & Control
 

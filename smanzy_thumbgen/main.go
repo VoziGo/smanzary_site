@@ -23,7 +23,9 @@ var targetSizes = []struct {
 	width   int
 	height  int
 }{
+	{"160x100", 160, 100},
 	{"320x200", 320, 200},
+	{"640x400", 640, 400},
 	{"800x600", 800, 600},
 }
 
@@ -221,7 +223,15 @@ func startWatcher() {
 					continue
 				}
 				// ------------------------
-				if strings.Contains(event.Name, "320x200") || strings.Contains(event.Name, "800x600") {
+				// Ignore changes inside thumbnail subdirectories
+				skip := false
+				for _, sz := range targetSizes {
+					if strings.Contains(event.Name, sz.dirName) {
+						skip = true
+						break
+					}
+				}
+				if skip {
 					continue
 				}
 
