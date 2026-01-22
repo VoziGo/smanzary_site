@@ -16,11 +16,15 @@ export default function LazyImage({
 }) {
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
     const imgRef = useRef(null);
+
+    const { maxRetries = 3, retryDelay = 2000 } = props;
 
     useEffect(() => {
         setIsLoading(true);
         setHasError(false);
+        setRetryCount(0);
     }, [src]);
 
     const handleLoad = (e) => {
@@ -29,9 +33,15 @@ export default function LazyImage({
     };
 
     const handleError = (e) => {
-        setIsLoading(false);
-        setHasError(true);
-        if (onError) onError(e);
+        if (retryCount < maxRetries) {
+            setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+            }, retryDelay);
+        } else {
+            setIsLoading(false);
+            setHasError(true);
+            if (onError) onError(e);
+        }
     };
 
     return (
@@ -49,6 +59,7 @@ export default function LazyImage({
                 </div>
             ) : (
                 <img
+                    key={`${src}-${retryCount}`}
                     ref={imgRef}
                     src={src}
                     alt={alt}
