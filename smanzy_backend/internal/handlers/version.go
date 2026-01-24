@@ -10,9 +10,9 @@ import (
 // Version constants
 const (
 	VersionMajor = 1
-	VersionMinor = 6
-	VersionPatch = 0
-	VersionPre   = "beta"
+	VersionMinor = 10
+	VersionPatch = 1
+	VersionPre   = "alfa"
 )
 
 // Build information (can be set via ldflags during build)
