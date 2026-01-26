@@ -45,11 +45,9 @@ export default function MediaCard({
   const handlePreview = () => {
     setShowPreview(true);
   };
-  const handleDownload = (media) => {
-    window.open(
-      import.meta.env.VITE_API_BASE_URL.replace("/api", "") + media.url,
-      "_blank",
-    );
+
+  const handleDownload = () => {
+    window.open(mediaUrl, "_blank");
   };
 
   return (
@@ -112,7 +110,7 @@ export default function MediaCard({
 
           <div className={styles.cardActions}>
             <IconButton
-              onClick={() => handleDownload(media)}
+              onClick={() => handleDownload()}
               disabled={!canView}
               title="Download"
             >
