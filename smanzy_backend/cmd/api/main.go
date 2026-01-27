@@ -153,14 +153,23 @@ func main() {
 		api.GET("/media", mediaHandler.ListPublicMediasHandler)
 
 		// Serve uploaded files directly (for development)
-		// :name is a path parameter that captures the filename
-		api.GET("/media/files/:name", mediaHandler.ServeFileHandler)
+		// :name is a path parameter that captures the filename.
+		// MEDIA_FILES_URL should be "/media/files/" (path under /api group); nginx proxies ^~ /api/media/files/
+		mediaFilesPath := os.Getenv("MEDIA_FILES_URL")
+		if mediaFilesPath == "" {
+			mediaFilesPath = "/media/files/"
+		}
+		api.GET(mediaFilesPath+":name", mediaHandler.ServeFileHandler)
 
 		// Serve thumbnail files
 		// GET /api/thumbnails/:size/:name
 		// :size is the thumbnail size (e.g., 320x200, 800x600)
 		// :name is the filename
-		api.GET("/thumbnail/:size/:name", mediaHandler.ServeThumbnailHandler)
+		thumbPath := os.Getenv("THUMBNAIL_FILES_URL")
+		if thumbPath == "" {
+			thumbPath = "/media/thumbs/"
+		}
+		api.GET(thumbPath+":size/:name", mediaHandler.ServeThumbnailHandler)
 	}
 
 	// == PROTECTED ROUTES ==

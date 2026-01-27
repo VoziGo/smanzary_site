@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,11 +16,9 @@ import (
 
 // MediaHandler handles media-related HTTP requests
 type MediaHandler struct {
-	conn             *sql.DB
-	queries          *db.Queries
-	uploadDir        string
-	mediaBaseURL     string
-	thumbnailBaseURL string
+	conn      *sql.DB
+	queries   *db.Queries
+	uploadDir string
 }
 
 // NewMediaHandler creates a new media handler
@@ -29,19 +26,9 @@ func NewMediaHandler(conn *sql.DB, queries *db.Queries) *MediaHandler {
 	// Allow configuring upload directory via environment variable.
 	// In containers, prefer an absolute path like /app/uploads.
 	uploadDir := os.Getenv("UPLOAD_DIR")
-	mediaBaseURL := os.Getenv("MEDIA_BASE_URL")
 
 	if uploadDir == "" {
-		uploadDir = "./uploads"
-	}
-
-	if mediaBaseURL == "" {
-		mediaBaseURL = "/api/media/files/"
-	}
-
-	thumbnailBaseURL := os.Getenv("THUMBNAIL_BASE_URL")
-	if thumbnailBaseURL == "" {
-		thumbnailBaseURL = "/api/thumbnail/"
+		uploadDir = os.Getenv("UPLOAD_DIR")
 	}
 
 	// Ensure upload directory exists (fail loudly if it cannot be created)
@@ -50,26 +37,12 @@ func NewMediaHandler(conn *sql.DB, queries *db.Queries) *MediaHandler {
 	}
 
 	fmt.Printf("Media uploads directory: %s\n", uploadDir)
-	fmt.Printf("Media base URL: %s\n", mediaBaseURL)
 
 	return &MediaHandler{
-		conn:             conn,
-		queries:          queries,
-		uploadDir:        uploadDir,
-		mediaBaseURL:     mediaBaseURL,
-		thumbnailBaseURL: thumbnailBaseURL,
+		conn:      conn,
+		queries:   queries,
+		uploadDir: uploadDir,
 	}
-}
-
-// GenThumbnailURL generates thumbnail URL
-func (mh *MediaHandler) GenThumbnailURL(storedName string, size string) string {
-	baseName := strings.TrimSuffix(storedName, filepath.Ext(storedName))
-	return mh.thumbnailBaseURL + size + "/" + baseName + ".jpg"
-}
-
-// GenMediaURL generates media URL
-func (mh *MediaHandler) GenMediaURL(storedName string) string {
-	return mh.mediaBaseURL + storedName
 }
 
 // UploadHandler handles file uploads
@@ -122,7 +95,6 @@ func (mh *MediaHandler) UploadHandler(c *gin.Context) {
 		ID:         uint(mediaRow.ID),
 		Filename:   mediaRow.Filename,
 		StoredName: mediaRow.StoredName,
-		URL:        mh.GenMediaURL(mediaRow.StoredName),
 		Type:       mediaRow.Type,
 		MimeType:   mediaRow.MimeType,
 		Size:       mediaRow.Size,
@@ -184,12 +156,12 @@ func (mh *MediaHandler) GetMediaDetailsHandler(c *gin.Context) {
 		Filename:   mediaRow.Filename,
 		StoredName: mediaRow.StoredName,
 		// URL:        mh.GenMediaURL(mediaRow.StoredName),
-		Type:       mediaRow.Type,
-		MimeType:   mediaRow.MimeType,
-		Size:       mediaRow.Size,
-		UserID:     uint(mediaRow.UserID),
-		CreatedAt:  mediaRow.CreatedAt,
-		UpdatedAt:  mediaRow.UpdatedAt,
+		Type:      mediaRow.Type,
+		MimeType:  mediaRow.MimeType,
+		Size:      mediaRow.Size,
+		UserID:    uint(mediaRow.UserID),
+		CreatedAt: mediaRow.CreatedAt,
+		UpdatedAt: mediaRow.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, SuccessResponse{Data: apiMedia})
@@ -227,18 +199,6 @@ func (mh *MediaHandler) ServeThumbnailHandler(c *gin.Context) {
 	// Validate size parameter to prevent path traversal
 	if size == "" || name == "" {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid parameters"})
-		return
-	}
-
-	// Only allow known thumbnail sizes
-	allowedSizes := map[string]bool{
-		"160x100": true,
-		"320x200": true,
-		"640x400": true,
-		"800x600": true,
-	}
-	if !allowedSizes[size] {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid thumbnail size"})
 		return
 	}
 
@@ -294,15 +254,15 @@ func (mh *MediaHandler) ListPublicMediasHandler(c *gin.Context) {
 			Filename:   row.Filename,
 			StoredName: row.StoredName,
 			// URL:        mh.GenMediaURL(row.StoredName),
-			Type:       row.Type,
-			MimeType:   row.MimeType,
-			Size:       row.Size,
-			UserID:     uint(row.UserID),
-			UserName:   row.UserName,
-			UserTel:    row.UserTel.String,
-			UserEmail:  row.UserEmail,
-			CreatedAt:  row.CreatedAt,
-			UpdatedAt:  row.UpdatedAt,
+			Type:      row.Type,
+			MimeType:  row.MimeType,
+			Size:      row.Size,
+			UserID:    uint(row.UserID),
+			UserName:  row.UserName,
+			UserTel:   row.UserTel.String,
+			UserEmail: row.UserEmail,
+			CreatedAt: row.CreatedAt,
+			UpdatedAt: row.UpdatedAt,
 		})
 	}
 
@@ -336,12 +296,12 @@ func (mh *MediaHandler) ListAlbumMediaHandler(c *gin.Context) {
 			Filename:   row.Filename,
 			StoredName: row.StoredName,
 			// URL:        mh.GenMediaURL(row.StoredName),
-			Type:       row.Type.String,
-			MimeType:   row.MimeType.String,
-			Size:       row.Size,
-			UserID:     uint(row.UserID),
-			CreatedAt:  row.CreatedAt,
-			UpdatedAt:  row.UpdatedAt,
+			Type:      row.Type.String,
+			MimeType:  row.MimeType.String,
+			Size:      row.Size,
+			UserID:    uint(row.UserID),
+			CreatedAt: row.CreatedAt,
+			UpdatedAt: row.UpdatedAt,
 		})
 	}
 
