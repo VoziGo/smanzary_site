@@ -148,7 +148,7 @@ export default function MediaManagerCards() {
       try {
         const found = await waitForThumbnail(storedName, "medium", {
           intervalMs: 1000,
-          timeoutMs: 20000,
+          timeoutMs: 5000,
         });
         if (!found) {
           console.warn(
