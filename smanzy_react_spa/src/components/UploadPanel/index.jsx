@@ -11,9 +11,11 @@ const UploadPanel = forwardRef(
       onUpload,
       selectedFile,
       isUploading = false,
+      isProcessing = false,
       uploadProgress = 0,
       buttonText = "Upload File",
       uploadingText = "Uploading...",
+      processingText = "Processing...",
       accept,
       className,
     },
@@ -60,12 +62,21 @@ const UploadPanel = forwardRef(
           </div>
           <Button
             onClick={handleUploadClick}
-            disabled={!selectedFile || isUploading}
+            disabled={!selectedFile || isUploading || isProcessing}
             className={styles.uploadButton}
           >
-            {isUploading ? uploadingText : buttonText}
+            {isUploading
+              ? uploadingText
+              : isProcessing
+                ? processingText
+                : buttonText}
           </Button>
         </div>
+        {isProcessing && (
+          <div style={{ marginTop: "0.5rem", color: "#666" }}>
+            Generating thumbnail, please wait...
+          </div>
+        )}
         {showProgress && (
           <div className={styles.progressWrapper}>
             <div className={styles.progressInfo}>

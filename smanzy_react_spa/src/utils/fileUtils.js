@@ -1,3 +1,5 @@
+import api from "@/services/api";
+
 /**
  * Formats file size in bytes into human readable format (KB, MB, GB, etc.)
  * @param {number} bytes
@@ -12,18 +14,72 @@ export const formatFileSize = (bytes) => {
 };
 
 //
-// const mediaSizes = {
-//   small:  "160x100",
-//   medium: "320x200",
-//   large:  "640x400",
-//   xl:     "800x600",
-//   xxl:    "1200x800"
-// }
+const mediaSize = (size = "medium") => {
+  switch (size) {
+    case "small":
+      return "160x100";
+    case "medium":
+      return "320x200";
+    case "large":
+      return "640x400";
+    case "xl":
+      return "800x600";
+    case "xxl":
+      return "1200x800";
+    default:
+      return "";
+  }
+};
 
 export const getThumbnailUrl = (media, size = "medium") => {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
-  const baseUrl = apiBaseUrl.replace("/api", "/api/media/files/");
-  return baseUrl + media.stored_name;
+  const baseUrl = apiBaseUrl.replace("/api", "/api/media/thumbs/");
+  // Construct thumbnail URL (no extra logging)
+  return (
+    baseUrl +
+    mediaSize(size) +
+    "/" +
+    media.stored_name.replace(/\.[^/.]+$/, "") +
+    ".jpg"
+  );
+};
+
+/**
+ * Wait until the thumbnail for a given stored file name is available.
+ * Polls the thumbnail endpoint using HEAD requests and resolves to true when found.
+ *
+ * @param {string} storedName - The stored file name (including extension)
+ * @param {string} size - Thumb size key (small|medium|large)
+ * @param {object} opts - { intervalMs, timeoutMs }
+ * @returns {Promise<boolean>}
+ */
+export const waitForThumbnail = async (
+  storedName,
+  size = "medium",
+  { intervalMs = 1000, timeoutMs = 20000 } = {},
+) => {
+  if (!storedName) return false;
+  const basePath = "/media/thumbs/";
+  const thumbName = storedName.replace(/\.[^/.]+$/, "") + ".jpg";
+  const path = `${basePath}${mediaSize(size)}/${thumbName}`;
+
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      // Use HEAD request to check existence
+      await api.head(path);
+      return true;
+    } catch (err) {
+      // 404 means not ready yet; keep retrying
+      if (err.response && err.response.status === 404) {
+        await new Promise((r) => setTimeout(r, intervalMs));
+        continue;
+      }
+      // For other errors, rethrow so callers can handle it
+      throw err;
+    }
+  }
+  return false;
 };
 
 export const getMediaUrl = (media) => {

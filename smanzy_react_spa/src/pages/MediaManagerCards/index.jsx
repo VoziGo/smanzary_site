@@ -7,6 +7,7 @@ import MediaCard from "@/components/MediaCard";
 import UploadPanel from "@/components/UploadPanel";
 import Pagination from "@/components/Pagination";
 import styles from "./index.module.scss";
+import { waitForThumbnail } from "@/utils/fileUtils";
 
 const CARD_BASE_WIDTH = 200; // Base card width in pixels
 const GAP_SIZE = 16; // Gap size in pixels (matches $spacing-4)
@@ -19,6 +20,7 @@ export default function MediaManagerCards() {
   const queryClient = useQueryClient();
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [limit, setLimit] = useState(MAX_LIMIT); // Default limit
   const uploadPanelRef = useRef(null);
   const containerRef = useRef(null);
@@ -137,12 +139,33 @@ export default function MediaManagerCards() {
         },
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["media"] });
-      setSelectedFile(null);
-      setUploadProgress(0);
-      if (uploadPanelRef.current) {
-        uploadPanelRef.current.reset();
+    onSuccess: async (res) => {
+      // Wait for thumbnail generation before refreshing. Backend returns the created media in res.data.data
+      const mediaObj = res?.data?.data || res?.data;
+      const storedName = mediaObj?.stored_name || mediaObj?.storedName;
+      setIsProcessing(true);
+
+      try {
+        const found = await waitForThumbnail(storedName, "medium", {
+          intervalMs: 1000,
+          timeoutMs: 20000,
+        });
+        if (!found) {
+          console.warn(
+            "Thumbnail not generated within timeout for",
+            storedName,
+          );
+        }
+      } catch (err) {
+        console.error("Error while waiting for thumbnail:", err);
+      } finally {
+        queryClient.invalidateQueries({ queryKey: ["media"] });
+        setSelectedFile(null);
+        setUploadProgress(0);
+        if (uploadPanelRef.current) {
+          uploadPanelRef.current.reset();
+        }
+        setIsProcessing(false);
       }
     },
     onError: (err) => {
@@ -225,6 +248,7 @@ export default function MediaManagerCards() {
         onUpload={handleUpload}
         selectedFile={selectedFile}
         isUploading={uploadMutation.isPending}
+        isProcessing={isProcessing}
         uploadProgress={uploadProgress}
       />
 
