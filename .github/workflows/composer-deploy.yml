@@ -1,0 +1,28 @@
+name: Composer Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 1. Navigate to project directory and pull latest code
+            cd /home/ristepan/smanzari_site
+            git pull origin main
+            
+            # 2. Rebuild and restart containers
+            docker compose -f docker-compose.prod.yml up -d --build
+            
+            # 3. Clean up unused Docker resources
+            docker system prune -f
