@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: thumbnailer
-        image: smanzy-thumbnailer:latest
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/vozigo/smanzary-thumbnailer:latest
+        imagePullPolicy: Always
         command: ["./thumbgen"]
         env:
         - name: UPLOAD_DIR

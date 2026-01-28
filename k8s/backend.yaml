@@ -28,8 +28,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: smanzy-backend:latest
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/vozigo/smanzary-backend:latest
+        imagePullPolicy: Always
         command: ["./server", "-migrate"]
         ports:
         - containerPort: 8080

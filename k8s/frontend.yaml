@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: smanzy-frontend:latest
-        imagePullPolicy: Never
+        image:  ghcr.io/vozigo/smanzary-frontend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
