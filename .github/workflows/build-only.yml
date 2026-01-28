@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build All Services
 
 on:
   push:
@@ -6,11 +6,11 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: vozigo/smanzary_site
+  # We use the organization name (lowercase) as the base
+  ORG_NAME: vozigo
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,10 +27,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      # --- SERVICE 1: FRONTEND ---
+      - name: Build and push Frontend
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./smanzy_react_spa
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-        
+          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/smanzary-frontend:latest
+
+      # --- SERVICE 2: BACKEND ---
+      - name: Build and push Backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./smanzy_backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/smanzary-backend:latest
+
+      # --- SERVICE 3: THUMBNAILER ---
+      - name: Build and push Thumbnailer
+        uses: docker/build-push-action@v4
+        with:
+          context: ./smanzy_thumbgen
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.ORG_NAME }}/smanzary-thumbnailer:latest
