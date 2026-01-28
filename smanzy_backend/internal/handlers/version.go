@@ -10,9 +10,9 @@ import (
 // Version constants
 const (
 	VersionMajor = 1
-	VersionMinor = 11
-	VersionPatch = 3
-	VersionPre   = "ThirdKubernetesRelease"
+	VersionMinor = 12
+	VersionPatch = 1
+	VersionPre   = "TestGitHubActions-02"
 )
 
 // Build information (can be set via ldflags during build)
