@@ -11,8 +11,8 @@ import (
 const (
 	VersionMajor = 1
 	VersionMinor = 11
-	VersionPatch = 2
-	VersionPre   = "FirstKubernetesRelease"
+	VersionPatch = 3
+	VersionPre   = "ThirdKubernetesRelease"
 )
 
 // Build information (can be set via ldflags during build)
