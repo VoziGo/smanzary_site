@@ -65,5 +65,7 @@ id_rsa*
 *.backup
 
 smanzy_data/
-backups/uploads_01.tar.gz
+backups/
+DataBase.sql
+uploads_01.tar.gz
 DataBase.sql
