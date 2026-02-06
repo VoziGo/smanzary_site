@@ -3,6 +3,7 @@
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DB_BACKUP_DIR="$SCRIPT_DIR/backups/db"
+BACKUP_LOGS="$SCRIPT_DIR/backups/logs"
 UPLOADS_DIR="$SCRIPT_DIR/smanzy_data/uploads"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 DB_BACKUP_FILE="$DB_BACKUP_DIR/smanzy_db_$TIMESTAMP.sql.gz"
@@ -11,6 +12,7 @@ CONTAINER_NAME="smanzy_postgres"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$DB_BACKUP_DIR"
+mkdir -p "$BACKUP_LOGS"
 
 # Load essential variables from .env
 if [ -f "$ENV_FILE" ]; then
