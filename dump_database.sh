@@ -46,7 +46,6 @@ echo "Target:    $BACKUP_FILE"
 # Run pg_dump inside the container and compress the output
 if docker exec -e PGPASSWORD="$DB_PASS" "$CONTAINER_NAME" \
     pg_dump -U "$DB_USER" -d "$DB_NAME" | gzip > "$BACKUP_FILE"; then
-<<<<<<< HEAD
 
     echo "Success: Backup completed."
 
@@ -61,28 +60,8 @@ if docker exec -e PGPASSWORD="$DB_PASS" "$CONTAINER_NAME" \
     echo "Cleaning up backups older than 30 days..."
     find "$BACKUP_DIR" -name "smanzy_db_*.sql.gz" -mtime +30 -delete
 
-=======
-
-    echo "Success: Backup completed."
-
-    # Create/Update 'latest' symlink
-    ln -sf "$BACKUP_FILE" "$BACKUP_DIR/latest.sql.gz"
-
-    # Calculate size
-    SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
-    echo "Backup size: $SIZE"
-
-    # Prune backups older than 30 days
-    echo "Cleaning up backups older than 30 days..."
-    find "$BACKUP_DIR" -name "smanzy_db_*.sql.gz" -mtime +30 -delete
-
->>>>>>> optimisation/free-unoficial
     echo "--- Backup Process Finished ---"
 else
     echo "Error: Database backup failed!"
     exit 1
-<<<<<<< HEAD
 fi
-=======
-fi
->>>>>>> optimisation/free-unoficial
