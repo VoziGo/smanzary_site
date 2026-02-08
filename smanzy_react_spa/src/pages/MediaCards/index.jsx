@@ -4,10 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import Panel from "@/components/Panel";
 import MediaCard from "@/components/MediaCard";
-import UploadPanel from "@/components/UploadPanel";
 import Pagination from "@/components/Pagination";
 import styles from "./index.module.scss";
-import { getThumbnailUrl } from "@/utils/fileUtils";
 
 const CARD_BASE_WIDTH = 200; // Base card width in pixels
 const GAP_SIZE = 16; // Gap size in pixels (matches $spacing-4)
@@ -19,10 +17,7 @@ export default function MediaCards() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [limit, setLimit] = useState(MAX_LIMIT); // Default limit
-  const uploadPanelRef = useRef(null);
   const containerRef = useRef(null);
   const resizeTimerRef = useRef(null);
 
@@ -121,45 +116,6 @@ export default function MediaCards() {
     return isAdmin || isOwner;
   };
 
-//   // Upload mutation
-//   const uploadMutation = useMutation({
-//     mutationFn: async (file) => {
-//       const formData = new FormData();
-//       formData.append("file", file);
-
-//       return api.post("/media", formData, {
-//         headers: {
-//           "Content-Type": "multipart/form-data",
-//         },
-//         onUploadProgress: (progressEvent) => {
-//           const percentCompleted = Math.round(
-//             (progressEvent.loaded * 100) / progressEvent.total,
-//           );
-//           setUploadProgress(percentCompleted);
-//         },
-//       });
-//     },
-//     onSuccess: async (res) => {
-//       // Backend returns the created media in res.data.data
-//       // We're no longer waiting for thumbnail generation here — refresh immediately.
-//       const mediaObj = res?.data?.data || res?.data;
-//       setIsProcessing(true);
-//       queryClient.invalidateQueries({ queryKey: ["media"] });
-//       setSelectedFile(null);
-//       setUploadProgress(0);
-//       if (uploadPanelRef.current) {
-//         uploadPanelRef.current.reset();
-//       }
-//       setIsProcessing(false);
-//     },
-//     onError: (err) => {
-//       alert(
-//         "Failed to upload file: " + (err.response?.data?.error || err.message),
-//       );
-//       setUploadProgress(0);
-//     },
-//   });
-
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (id) => {
@@ -224,17 +180,6 @@ export default function MediaCards() {
           Upload, manage, and organize your media files
         </p>
       </div>
-      {/* Upload Section */}
-      {/* <UploadPanel
-        ref={uploadPanelRef}
-        title="Upload New File"
-        onFileSelect={handleFileSelect}
-        onUpload={handleUpload}
-        selectedFile={selectedFile}
-        isUploading={uploadMutation.isPending}
-        isProcessing={isProcessing}
-        uploadProgress={uploadProgress}
-      /> */}
 
       {/* Media List */}
       <Panel>

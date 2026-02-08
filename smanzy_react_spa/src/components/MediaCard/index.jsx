@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Edit, Download, Trash2 } from "lucide-react";
+import { Edit, Download, Trash2, ALargeSmall } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IconButton, FileIcon, MediaPreviewOverlay } from "@/components";
 // import LazyImage from "@/components/LazyImage";
@@ -23,7 +23,7 @@ export default function MediaCard({
 
   const isPreviewable =
     isImageFile(media.mime_type) || isVideoFile(media.mime_type);
-  const thumbUrl = getThumbnailUrl(media);
+  const thumbUrl = getThumbnailUrl(media, "large");
   // console.log(thumbUrl);
   const mediaUrl = getMediaUrl(media);
 
