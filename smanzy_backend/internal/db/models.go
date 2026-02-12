@@ -45,6 +45,13 @@ type Role struct {
 	UpdatedAt int64  `json:"updated_at"`
 }
 
+type Setting struct {
+	Key       string `json:"key"`
+	Value     string `json:"value"`
+	CreatedAt int64  `json:"created_at"`
+	UpdatedAt int64  `json:"updated_at"`
+}
+
 type User struct {
 	ID            int64          `json:"id"`
 	Email         string         `json:"email"`

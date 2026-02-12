@@ -21,6 +21,7 @@ type Querier interface {
 	GetAlbumMedia(ctx context.Context, albumID int64) ([]Medium, error)
 	GetMediaByID(ctx context.Context, id int64) (GetMediaByIDRow, error)
 	GetRoleByName(ctx context.Context, name string) (Role, error)
+	GetSetting(ctx context.Context, key string) (string, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserByEmailWithDeleted(ctx context.Context, email string) (GetUserByEmailWithDeletedRow, error)
 	GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, error)
@@ -28,6 +29,7 @@ type Querier interface {
 	GetVideoByID(ctx context.Context, id int64) (Video, error)
 	ListAllAlbums(ctx context.Context) ([]ListAllAlbumsRow, error)
 	ListPublicMedia(ctx context.Context, arg ListPublicMediaParams) ([]ListPublicMediaRow, error)
+	ListSettings(ctx context.Context) ([]ListSettingsRow, error)
 	ListUserAlbums(ctx context.Context, userID int64) ([]ListUserAlbumsRow, error)
 	ListUserMedia(ctx context.Context, userID int64) ([]ListUserMediaRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
@@ -43,6 +45,7 @@ type Querier interface {
 	UpdateAlbum(ctx context.Context, arg UpdateAlbumParams) (Album, error)
 	UpdateMedia(ctx context.Context, arg UpdateMediaParams) (UpdateMediaRow, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)
+	UpsertSetting(ctx context.Context, arg UpsertSettingParams) (Setting, error)
 }
 
 var _ Querier = (*Queries)(nil)

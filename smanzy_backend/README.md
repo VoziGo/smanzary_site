@@ -31,6 +31,7 @@ smanzy_backend/
 │   │   ├── media.go                # HTTP handlers for media management
 │   │   ├── album.go                # HTTP handlers for album management
 │   │   ├── video.go                # HTTP handlers for video management
+│   │   ├── settings.go             # HTTP handlers for site settings
 │   │   └── version.go              # API version handler
 │   ├── services/
 │   │   ├── album.go                # Business logic for album operations
@@ -47,7 +48,8 @@ smanzy_backend/
 │   │   │   ├── users.sql
 │   │   │   ├── media.sql
 │   │   │   ├── albums.sql
-│   │   │   └── videos.sql
+│   │   │   ├── videos.sql
+│   │   │   └── settings.sql
 │   │   ├── migrations/             # Database migration files
 │   │   ├── connection.go           # Database connection management
 │   │   ├── db.go                   # Database utilities
@@ -264,6 +266,28 @@ GET /api/media/album/:album_id
 
 Returns a list of all media files belonging to the specified album.
 
+#### Site Background
+
+```http
+GET /api/site-background
+```
+
+Serves the current site background image dynamically based on the server-side setting. Support cache-busting via a `?v=` query parameter.
+
+#### Settings (Public)
+
+```http
+GET /api/settings
+```
+
+Returns a map of all public site settings.
+
+```http
+GET /api/settings/:key
+```
+
+Returns the value of a specific site setting.
+
 ### Protected Endpoints (Requires JWT)
 
 #### Get User Profile
@@ -386,6 +410,7 @@ This endpoint fetches the latest videos from the configured YouTube channel and 
 - `POST /api/users/:id/roles` - Assign role
 - `DELETE /api/users/:id/roles` - Remove role
 - `GET /api/albums/all` - Get all albums from all users
+- `PUT /api/settings/:key` - Update a site setting (e.g., `site-bg-image`)
 
 ## Development
 

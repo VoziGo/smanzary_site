@@ -96,6 +96,7 @@ func main() {
 	mediaHandler := handlers.NewMediaHandler(conn, queries)
 	albumHandler := handlers.NewAlbumHandler(conn, queries)
 	videoHandler := handlers.NewVideoHandler(conn, queries, youtubeService)
+	settingsHandler := handlers.NewSettingsHandler(conn, queries)
 
 	// 7. Router Setup
 	// Create a new Gin router with default middleware (logger and recovery)
@@ -151,6 +152,11 @@ func main() {
 
 		// Public media listing
 		api.GET("/media", mediaHandler.ListPublicMediasHandler)
+		api.GET("/site-background", mediaHandler.GetSiteBackgroundHandler)
+
+		// Public settings
+		api.GET("/settings", settingsHandler.ListSettingsHandler)
+		api.GET("/settings/:key", settingsHandler.GetSettingHandler)
 
 		// Serve uploaded files directly (for development)
 		// :name is a path parameter that captures the filename.
@@ -241,6 +247,13 @@ func main() {
 		videos := protectedAPI.Group("/videos")
 		{
 			videos.POST("/sync", videoHandler.SyncVideosHandler) // Sync videos from YouTube
+		}
+
+		// Settings management (admin only)
+		settings := protectedAPI.Group("/settings")
+		settings.Use(middleware.RoleMiddleware("admin"))
+		{
+			settings.PUT("/:key", settingsHandler.UpdateSettingHandler)
 		}
 
 	}

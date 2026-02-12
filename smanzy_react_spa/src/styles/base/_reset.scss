@@ -19,7 +19,7 @@ html {
 
 body {
 	background-color: var(--color-background);
-	background-image: url("@/assets/background.png");
+	background-image: var(--site-bg-image, url("@/assets/background.png"));
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;

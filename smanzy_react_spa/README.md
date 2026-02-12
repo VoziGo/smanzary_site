@@ -100,3 +100,14 @@ The application uses a centralized API client in `src/services/api.js`. It autom
 - Base URL configuration via environment variables (`VITE_API_BASE_URL`).
 - Attaching the JWT `Authorization` header to requests if a token exists in `localStorage` (key: `token`).
 - A refresh-token flow: on 401 the client attempts `POST /auth/refresh` using `refresh_token` from `localStorage`; if refresh succeeds tokens are updated, otherwise auth is cleared and the user is redirected to `/login`.
+
+## 🎨 Theming & Customization
+
+The application features a dynamic theming system:
+
+- **Theme Switching**: Supports `light`, `dark`, and `coffee` themes. The preference is stored in `localStorage` and applied via the `data-theme` attribute on the root element.
+- **Global Background**: Admins can select a site-wide background image from the **Settings** page.
+  - The background is stored as a `media.id` on the server.
+  - The application fetches this setting on load and applies it via a CSS variable (`--site-bg-image`).
+  - The background is served via a dedicated `/api/site-background` endpoint to ensure consistency across the application.
+

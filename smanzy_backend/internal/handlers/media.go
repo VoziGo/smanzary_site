@@ -129,6 +129,32 @@ func (mh *MediaHandler) GetMediaHandler(c *gin.Context) {
 	c.File(filePath)
 }
 
+// GetSiteBackgroundHandler serves the site background image based on the media ID stored in settings
+func (mh *MediaHandler) GetSiteBackgroundHandler(c *gin.Context) {
+	// Get the setting
+	mediaIDStr, err := mh.queries.GetSetting(c.Request.Context(), "site-bg-image")
+	if err != nil || mediaIDStr == "" {
+		// Fallback or not found
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	mediaID, err := strconv.ParseInt(mediaIDStr, 10, 64)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	mediaRow, err := mh.queries.GetMediaByID(c.Request.Context(), int64(mediaID))
+	if err != nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	filePath := filepath.Join(mh.uploadDir, mediaRow.StoredName)
+	c.File(filePath)
+}
+
 // GetMediaDetailsHandler returns media metadata
 func (mh *MediaHandler) GetMediaDetailsHandler(c *gin.Context) {
 	mediaIDStr := c.Param("id")

@@ -19,7 +19,7 @@ export default function AlbumCard({ album, onManage, onDelete, isDeleting }) {
     <div className={styles.albumCard}>
       <div className={styles.albumCover} onClick={onManage}>
         {coverImage && coverImage.mime_type.startsWith("image/") ? (
-          <img src={getMediaUrl(coverImage)} alt={album.title} />
+          <img src={getThumbnailUrl(coverImage, "xl")} alt={album.title} />
         ) : (
           <div className={styles.placeholderCover}>
             <Edit size={48} />
