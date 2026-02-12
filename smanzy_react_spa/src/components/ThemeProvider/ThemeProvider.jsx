@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ThemeContext from '@/context/ThemeContext';
+import api from '@/services/api';
 
 const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(() => {
@@ -18,6 +19,27 @@ const ThemeProvider = ({ children }) => {
         return 'dark';
     });
 
+    const [backgroundImage, setBackgroundImage] = useState(null);
+
+    // Fetch site settings from server
+    useEffect(() => {
+        api.get("/settings/site-bg-image").then((res) => {
+            const setting = res.data?.data;
+            if (setting && setting.value) {
+                // Point to the dedicated site-background endpoint with a cache-buster
+                const baseUrl = api.defaults.baseURL;
+                setBackgroundImage(`${baseUrl}/site-background?v=${Date.now()}`);
+            } else {
+                setBackgroundImage(null);
+            }
+        }).catch(err => {
+            if (err.response?.status !== 404) {
+                console.error("Failed to fetch site settings:", err);
+            }
+            setBackgroundImage(null);
+        });
+    }, []);
+
     useEffect(() => {
         // Apply theme to document root
         document.documentElement.setAttribute('data-theme', theme);
@@ -25,6 +47,14 @@ const ThemeProvider = ({ children }) => {
         // Save to localStorage
         localStorage.setItem('theme', theme);
     }, [theme]);
+
+    useEffect(() => {
+        if (backgroundImage) {
+            document.documentElement.style.setProperty('--site-bg-image', `url("${backgroundImage}")`);
+        } else {
+            document.documentElement.style.removeProperty('--site-bg-image');
+        }
+    }, [backgroundImage]);
 
     // Listen for system theme changes
     useEffect(() => {
@@ -55,6 +85,8 @@ const ThemeProvider = ({ children }) => {
         theme,
         toggleTheme,
         setTheme,
+        backgroundImage,
+        setBackgroundImage,
     };
 
     return (

@@ -4,6 +4,8 @@ const ThemeContext = createContext({
     theme: 'dark',
     toggleTheme: () => { },
     setTheme: () => { },
+    backgroundImage: null,
+    setBackgroundImage: () => { },
 });
 
 export const useTheme = () => {
