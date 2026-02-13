@@ -119,19 +119,22 @@ services:
       backend:
         condition: service_healthy
 
-  # NEW: Postgres Metrics Exporter
+  # Postgres metrics exporter
   postgres_exporter:
-    image: prometheuscommunity/postgres-exporter
+    image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: smanzy_postgres_exporter
     environment:
       DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
     networks:
       - smanzy_network
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # NEW: Container Metrics (CPU/RAM per container)
+  # Container metrics (CPU/RAM per container)
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
     container_name: smanzy_cadvisor
     volumes:
       - /:/rootfs:ro
@@ -143,38 +146,56 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.47.2
     container_name: smanzy_prometheus
     restart: unless-stopped
     ports:
       - "127.0.0.1:9091:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus # PERSISTENCE ADDED
+      - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=15d' # Keep 15 days of data
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
     networks:
       - smanzy_network
+    depends_on:
+      - node_exporter
+      - postgres_exporter
+      - cadvisor
 
-  # NEW: Visualization Layer
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana:10.2.3
     container_name: smanzy_grafana
+    environment:
+      GF_SERVER_ROOT_URL: "http://127.0.0.1:3001"
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: ""
     ports:
       - "127.0.0.1:3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
       - smanzy_network
     restart: unless-stopped
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   node_exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.7.0
     container_name: smanzy_node_exporter
     restart: unless-stopped
-    # No need to expose port 9100 to host if only Prometheus needs it
     networks:
       - smanzy_network
 
