@@ -119,6 +119,29 @@ services:
       backend:
         condition: service_healthy
 
+  # NEW: Postgres Metrics Exporter
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: smanzy_postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    networks:
+      - smanzy_network
+    restart: unless-stopped
+
+  # NEW: Container Metrics (CPU/RAM per container)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: smanzy_cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - smanzy_network
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:latest
     container_name: smanzy_prometheus
@@ -127,18 +150,39 @@ services:
       - "127.0.0.1:9091:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus # PERSISTENCE ADDED
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d' # Keep 15 days of data
     networks:
       - smanzy_network
+
+  # NEW: Visualization Layer
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: smanzy_grafana
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - smanzy_network
+    restart: unless-stopped
 
   node_exporter:
     image: prom/node-exporter:latest
     container_name: smanzy_node_exporter
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:9100:9100"
+    # No need to expose port 9100 to host if only Prometheus needs it
     networks:
       - smanzy_network
 
+volumes:
+  prometheus_data:
+  grafana_data:
+
+# Networks 
 networks:
   smanzy_network:
     driver: bridge
