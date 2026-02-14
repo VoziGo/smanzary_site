@@ -1,4 +1,5 @@
 services:
+  # SERVICE (PostgreSQL) - Persistent storage for all application data.
   postgres:
     image: postgres:16-alpine
     container_name: smanzy_postgres
@@ -21,6 +22,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+  # SERVICE (Backend) - Go-based API handling logic, database interactions, and authentication.
   backend:
     build:
       context: ./smanzy_backend
@@ -61,6 +63,7 @@ services:
     networks:
       - smanzy_network
 
+  # SERVICE (Frontend) - React-based Single Page Application (SPA) served via Nginx.
   frontend:
     build:
       context: ./smanzy_react_spa
@@ -89,7 +92,7 @@ services:
     networks:
       - smanzy_network
 
-  # NEW SERVICE
+  # SERVICE (Thumbnailer) - Watches the uploads directory and generates thumbnails for images and videos.
   thumbnailer:
     build:
       context: ./smanzy_thumbgen
