@@ -176,8 +176,10 @@ services:
   grafana:
     image: grafana/grafana:10.2.3
     container_name: smanzy_grafana
+    env_file:
+      - .env
     environment:
-      GF_SERVER_ROOT_URL: "${GRAFANA_SERVER_ROOT_URL:-https://grafana.vozigo.com}"
+      GF_SERVER_ROOT_URL: "${GF_SERVER_ROOT_URL:-${GRAFANA_SERVER_ROOT_URL:-https://grafana.smanzary.vozigo.com}}"
       GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
       GF_USERS_ALLOW_SIGN_UP: "false"
@@ -199,13 +201,13 @@ services:
       start_period: 30s
 
   # Internal proxy so host nginx can reach Grafana without exposing Grafana directly.
-  # Access only via https://grafana.vozigo.com; direct localhost would hit this proxy.
+  # Access only via https://grafana.smanzary.vozigo.com; direct localhost would hit this proxy.
   grafana_proxy:
     image: nginx:alpine
     container_name: smanzy_grafana_proxy
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:80"
+      - "127.0.0.1:3002:80"
     volumes:
       - ./nginx_conf/grafana-internal.conf:/etc/nginx/conf.d/default.conf:ro
     networks:

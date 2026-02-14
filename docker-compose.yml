@@ -172,6 +172,8 @@ services:
   grafana:
     image: grafana/grafana:10.2.3
     container_name: smanzy_grafana
+    env_file:
+      - .env
     environment:
       GF_SERVER_ROOT_URL: "http://127.0.0.1:3001"
       GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
