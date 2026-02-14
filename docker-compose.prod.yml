@@ -182,8 +182,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_INSTALL_PLUGINS: ""
-    ports:
-      - "127.0.0.1:3001:3000"
+    # Not exposed on host; only reachable via grafana_proxy (avoids broken links when opening localhost directly)
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
@@ -198,6 +197,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+
+  # Internal proxy so host nginx can reach Grafana without exposing Grafana directly.
+  # Access only via https://grafana.vozigo.com; direct localhost would hit this proxy.
+  grafana_proxy:
+    image: nginx:alpine
+    container_name: smanzy_grafana_proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:80"
+    volumes:
+      - ./nginx_conf/grafana-internal.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - smanzy_network
+    depends_on:
+      grafana:
+        condition: service_healthy
 
 volumes:
   prometheus_data:
