@@ -177,7 +177,7 @@ services:
     image: grafana/grafana:10.2.3
     container_name: smanzy_grafana
     environment:
-      GF_SERVER_ROOT_URL: "http://127.0.0.1:3001"
+      GF_SERVER_ROOT_URL: "${GRAFANA_SERVER_ROOT_URL:-https://grafana.vozigo.com}"
       GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
       GF_USERS_ALLOW_SIGN_UP: "false"
