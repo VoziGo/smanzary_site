@@ -24,4 +24,5 @@ COPY --from=builder /app/thumbgen .
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD sh -c 'test -d /app/uploads && touch /app/uploads/.healthcheck && rm /app/uploads/.healthcheck || exit 1'
 
-CMD ["./thumbgen"]
+# CMD ["./thumbgen"]
+# CMD ["vite", "dev"]

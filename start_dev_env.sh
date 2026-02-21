@@ -5,6 +5,16 @@ SESSION="smanzy_dev"
 # Change to "Development" if that was a typo on your machine.
 PROJECT_DIR="~/Development/smanzari_site"
 
+# --- Parse arguments ---
+FRONT_DEV=false
+for arg in "$@"; do
+    case $arg in
+        --frontdev)
+            FRONT_DEV=true
+            ;;
+    esac
+done
+
 # 1. Check if session exists
 tmux has-session -t $SESSION 2>/dev/null
 
@@ -26,10 +36,12 @@ if [ $? != 0 ]; then
     tmux send-keys -t $SESSION "cd $PROJECT_DIR/smanzy_backend" C-m
     tmux send-keys -t $SESSION "make dev" C-m
 
-    # --- PANE 3: Front-end (Right Side, Bottom) ---
-    tmux split-window -t $SESSION
-    tmux send-keys -t $SESSION "cd $PROJECT_DIR/smanzy_react_spa" C-m
-    tmux send-keys -t $SESSION "vite dev" C-m
+    # --- PANE 3: Front-end (Right Side, Bottom) --- (only with --frontdev)
+    if [ "$FRONT_DEV" = true ]; then
+        tmux split-window -t $SESSION
+        tmux send-keys -t $SESSION "cd $PROJECT_DIR/smanzy_react_spa" C-m
+        tmux send-keys -t $SESSION "vite dev" C-m
+    fi
 
     # --- LAYOUT: Main Vertical ---
     # This puts Pane 0 (Terminal) as the large main window on the left

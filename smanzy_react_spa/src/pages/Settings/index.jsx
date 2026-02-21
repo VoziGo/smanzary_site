@@ -4,7 +4,7 @@ import { Panel, Button, Alert } from "@/components";
 import styles from "./index.module.scss";
 import api from "@/services/api";
 import { useTheme } from "@/context/ThemeContext";
-import { getMediaUrl } from "@/utils/fileUtils";
+import { getThumbnailUrl } from "@/utils/fileUtils";
 import clsx from "clsx";
 
 export default function Settings() {
@@ -108,7 +108,7 @@ export default function Settings() {
                         ) : (
                             <div className={styles.bgGrid}>
                                 {images.filter(img => img.mime_type?.startsWith('image/')).map((image) => {
-                                    const url = getMediaUrl(image);
+                                    const url = getThumbnailUrl(image, 'large');
                                     return (
                                         <div
                                             key={image.id}
