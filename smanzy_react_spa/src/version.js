@@ -1,7 +1,7 @@
 export const VERSION_MAJOR = 1;
 export const VERSION_MINOR = 2;
-export const VERSION_PATCH = 5;
-export const VERSION_PRE = "202602211135";
+export const VERSION_PATCH = 6;
+export const VERSION_PRE = "202603231247";
 
 export const formatVersion = (major, minor, patch, pre) => {
   return `${major}.${minor}.${patch}-${pre}`;
